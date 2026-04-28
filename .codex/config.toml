@@ -1,0 +1,3 @@
+[agent]
+approval_mode = "on-request"
+reasoning = "high"
