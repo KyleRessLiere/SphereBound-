@@ -1,0 +1,15 @@
+/Users/kyleress-liere/Documents/GitHub/Spherebound/Tools/CoreRunner/bin/Debug/net9.0/CoreRunner
+/Users/kyleress-liere/Documents/GitHub/Spherebound/Tools/CoreRunner/bin/Debug/net9.0/CoreRunner.deps.json
+/Users/kyleress-liere/Documents/GitHub/Spherebound/Tools/CoreRunner/bin/Debug/net9.0/CoreRunner.runtimeconfig.json
+/Users/kyleress-liere/Documents/GitHub/Spherebound/Tools/CoreRunner/bin/Debug/net9.0/CoreRunner.dll
+/Users/kyleress-liere/Documents/GitHub/Spherebound/Tools/CoreRunner/bin/Debug/net9.0/CoreRunner.pdb
+/Users/kyleress-liere/Documents/GitHub/Spherebound/Tools/CoreRunner/obj/Debug/net9.0/CoreRunner.GeneratedMSBuildEditorConfig.editorconfig
+/Users/kyleress-liere/Documents/GitHub/Spherebound/Tools/CoreRunner/obj/Debug/net9.0/CoreRunner.AssemblyInfoInputs.cache
+/Users/kyleress-liere/Documents/GitHub/Spherebound/Tools/CoreRunner/obj/Debug/net9.0/CoreRunner.AssemblyInfo.cs
+/Users/kyleress-liere/Documents/GitHub/Spherebound/Tools/CoreRunner/obj/Debug/net9.0/CoreRunner.csproj.CoreCompileInputs.cache
+/Users/kyleress-liere/Documents/GitHub/Spherebound/Tools/CoreRunner/obj/Debug/net9.0/CoreRunner.sourcelink.json
+/Users/kyleress-liere/Documents/GitHub/Spherebound/Tools/CoreRunner/obj/Debug/net9.0/CoreRunner.dll
+/Users/kyleress-liere/Documents/GitHub/Spherebound/Tools/CoreRunner/obj/Debug/net9.0/refint/CoreRunner.dll
+/Users/kyleress-liere/Documents/GitHub/Spherebound/Tools/CoreRunner/obj/Debug/net9.0/CoreRunner.pdb
+/Users/kyleress-liere/Documents/GitHub/Spherebound/Tools/CoreRunner/obj/Debug/net9.0/CoreRunner.genruntimeconfig.cache
+/Users/kyleress-liere/Documents/GitHub/Spherebound/Tools/CoreRunner/obj/Debug/net9.0/ref/CoreRunner.dll
