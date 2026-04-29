@@ -1,4 +1,4 @@
-# Tasks: [Name]
+# Tasks: [ID] [Name]
 
 ## Phase 1 - Core
 [ ] Task

@@ -11,9 +11,8 @@ Codex must follow this workflow for ALL features.
 Before any implementation:
 
 1. Check /specDev/decisions
-2. Check /specDev/requirements
-3. Check /specDev/design
-4. Check /specDev/tasks
+2. Check /specDev/index.md
+3. Check /specDev/features/[feature-id]-[feature-slug]/
 
 ---
 
@@ -21,18 +20,20 @@ Before any implementation:
 
 ### 1. Requirements Phase
 - If no requirements file exists:
-  -> Create /specDev/requirements/[feature].md
+  -> Create /specDev/features/[feature-id]-[feature-slug]/requirements.md
+- Assign the next feature ID from /specDev/index.md, starting at `00` and incrementing by 1 for each new feature
 - Register the feature in /specDev/index.md before moving forward
+- Feature IDs are assigned only when a feature is actually created in the requirements phase
 - DO NOT write code
 
 ### 2. Design Phase
 - Only after user validation in chat
-- Create /specDev/design/[feature].md
+- Create /specDev/features/[feature-id]-[feature-slug]/design.md
 - DO NOT write code
 
 ### 3. Task Phase
 - Only after user validation in chat
-- Create /specDev/tasks/[feature].md
+- Create /specDev/features/[feature-id]-[feature-slug]/tasks.md
 - Tasks must be:
   - small
   - sequential
@@ -40,7 +41,7 @@ Before any implementation:
 
 ### 4. Execution Phase
 - Only implement ONE task at a time
-- Must reference a task from /specDev/tasks
+- Must reference a task from /specDev/features/[feature-id]-[feature-slug]/tasks.md
 - Must update task status after completion
 
 ---
@@ -78,20 +79,22 @@ Unity should listen to core events and visualize outcomes.
 A task is complete when:
 - It satisfies acceptance criteria
 - It does not break existing specs
-- It updates /specDev/tasks
+- It updates /specDev/features/[feature-id]-[feature-slug]/tasks.md
 
 ---
 
 ## FILE STRUCTURE
 
 /specDev
-  /requirements
-  /design
-  /tasks
   /decisions
+  /features
+    /[feature-id]-[feature-slug]
+      requirements.md
+      design.md
+      tasks.md
   index.md
 
-`/specDev/index.md` is the source of truth for feature names and active feature tracking.
+`/specDev/index.md` is the source of truth for feature IDs, names, and active feature tracking.
 
 ---
 
