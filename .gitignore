@@ -3,8 +3,8 @@
 /Logs/
 /Temp/
 /Obj/
-/obj/
-/bin/
+obj/
+bin/
 /Build/
 /Builds/
 /UserSettings/
