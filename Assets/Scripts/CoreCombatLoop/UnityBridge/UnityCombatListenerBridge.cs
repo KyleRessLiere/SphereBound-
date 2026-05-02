@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Spherebound.CoreCombatLoop.Core;
 using Spherebound.CoreCombatLoop.Scenarios;
 using UnityEngine;
@@ -17,6 +18,8 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         [SerializeField] private string lastActionCountLog = string.Empty;
         [SerializeField] private string lastBoardOutput = string.Empty;
         [SerializeField] private string lastAttackOverlayOutput = string.Empty;
+        [SerializeField] private string lastFileOutputPath = string.Empty;
+        [SerializeField] private string lastFileOutputConfigPath = string.Empty;
         [SerializeField] private List<UnityBridgedUnitDebugState> debugUnits = new List<UnityBridgedUnitDebugState>();
 
         private readonly Dictionary<int, GameObject> placeholderObjects = new Dictionary<int, GameObject>();
@@ -25,6 +28,8 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         private ObservableCombatSession? ownedSession;
         private IDisposable? subscription;
         private readonly CombatDebugSurfacePresenter debugSurfacePresenter = new CombatDebugSurfacePresenter();
+        private CombatDebugFileOutputWriter? fileOutputWriter;
+        private string? fileOutputSessionId;
 
         public BridgedCombatSessionSnapshot? CurrentSnapshot { get; private set; }
 
@@ -35,6 +40,10 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         public string LastBoardOutput => lastBoardOutput;
 
         public string LastAttackOverlayOutput => lastAttackOverlayOutput;
+
+        public string LastFileOutputPath => lastFileOutputPath;
+
+        public string LastFileOutputConfigPath => lastFileOutputConfigPath;
 
         public void OnEnable()
         {
@@ -136,6 +145,10 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             lastActionCountLog = string.Empty;
             lastBoardOutput = string.Empty;
             lastAttackOverlayOutput = string.Empty;
+            lastFileOutputPath = string.Empty;
+            lastFileOutputConfigPath = string.Empty;
+            fileOutputWriter = null;
+            fileOutputSessionId = null;
             debugSurfacePresenter.Reset();
             debugUnits.Clear();
             ClearPlaceholderObjects();
@@ -144,7 +157,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         private void HandleCoreEvent(ICombatEvent combatEvent)
         {
             var snapshotBefore = CurrentSnapshot;
-            Debug.Log($"[CoreEvent] {ScenarioLogFormatter.Format(combatEvent)}", this);
+            PublishLog("CoreEvent", ScenarioLogFormatter.Format(combatEvent));
             RefreshSnapshot();
             EmitDerivedDebugOutput(combatEvent, snapshotBefore);
         }
@@ -154,9 +167,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             var result = CombatDebugCommandExecutor.Execute(debugSession, request);
             if (result.CommandFailureReason != CombatDebugCommandFailureReason.None)
             {
-                Debug.LogWarning(
-                    $"[BridgeControl] command={request.CommandType} failed reason={result.CommandFailureReason}",
-                    this);
+                PublishWarning("BridgeControl", $"command={request.CommandType} failed reason={result.CommandFailureReason}");
             }
 
             RefreshSnapshot();
@@ -197,18 +208,78 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
                 {
                     case "Actions":
                         lastActionCountLog = log.Message;
-                        Debug.Log($"[Actions] {log.Message}", this);
+                        PublishLog("Actions", log.Message);
                         break;
                     case "Board":
                         lastBoardOutput = log.Message;
-                        Debug.Log($"[Board]\n{log.Message}", this);
+                        PublishLog("Board", log.Message);
                         break;
                     case "AttackBoard":
                         lastAttackOverlayOutput = log.Message;
-                        Debug.Log($"[AttackBoard]\n{log.Message}", this);
+                        PublishLog("AttackBoard", log.Message);
                         break;
                 }
             }
+        }
+
+        private void PublishLog(string category, string message)
+        {
+            Debug.Log($"[{category}] {message}", this);
+            WriteFileOutput(category, message);
+        }
+
+        private void PublishWarning(string category, string message)
+        {
+            Debug.LogWarning($"[{category}] {message}", this);
+            WriteFileOutput(category, message);
+        }
+
+        private void WriteFileOutput(string category, string message)
+        {
+            if (sessionObserver == null)
+            {
+                return;
+            }
+
+            var projectRoot = ResolveProjectRoot();
+            if (string.IsNullOrEmpty(projectRoot))
+            {
+                return;
+            }
+
+            var config = CombatDebugFileOutputConfigLoader.LoadOrCreate(projectRoot);
+            lastFileOutputConfigPath = CombatDebugFileOutputConfigLoader.GetConfigPath(projectRoot);
+
+            if (!config.Enabled)
+            {
+                fileOutputWriter = null;
+                fileOutputSessionId = null;
+                lastFileOutputPath = string.Empty;
+                return;
+            }
+
+            if (fileOutputWriter == null
+                || fileOutputSessionId != sessionObserver.SessionId
+                || !string.Equals(fileOutputWriter.RootDirectory, Path.Combine(projectRoot, config.OutputRootRelativePath), StringComparison.Ordinal))
+            {
+                fileOutputWriter = CombatDebugFileOutputWriter.Create(projectRoot, config, sessionObserver.SessionId);
+                fileOutputSessionId = sessionObserver.SessionId;
+                lastFileOutputPath = fileOutputWriter.FilePath;
+            }
+
+            fileOutputWriter.Append(category, message);
+        }
+
+        private static string? ResolveProjectRoot()
+        {
+            var assetsDirectory = Application.dataPath;
+            if (string.IsNullOrWhiteSpace(assetsDirectory))
+            {
+                return null;
+            }
+
+            var directoryInfo = Directory.GetParent(assetsDirectory);
+            return directoryInfo?.FullName;
         }
 
         private void UpdateDebugUnits(BridgedCombatSessionSnapshot snapshot)

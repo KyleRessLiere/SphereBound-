@@ -98,6 +98,8 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
             DrawReadOnlyTextArea("Actions", bridge.LastActionCountLog, 1);
             DrawReadOnlyTextArea("Board", bridge.LastBoardOutput, 7);
             DrawReadOnlyTextArea("Attack Overlay", bridge.LastAttackOverlayOutput, 7);
+            DrawReadOnlyTextArea("File Config", bridge.LastFileOutputConfigPath, 1);
+            DrawReadOnlyTextArea("Output File", bridge.LastFileOutputPath, 2);
         }
 
         private void DrawDebugUnitsSection()

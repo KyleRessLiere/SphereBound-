@@ -28,3 +28,4 @@ Rules:
 - [04] [done] Unity Listener Bridge (`specDev/features/04-unity-listener-bridge/`)
 - [05] [done] Unity Debug Action Controls (`specDev/features/05-unity-debug-action-controls/`)
 - [06] [done] Unity Combat Debug Surface (`specDev/features/06-unity-combat-debug-surface/`)
+- [07] [done] Unity Combat Debug File Output (`specDev/features/07-unity-combat-debug-file-output/`)

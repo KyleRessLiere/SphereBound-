@@ -26,8 +26,8 @@ namespace Spherebound.CoreCombatLoop.Verification
             var snapshot = ObservableCombatSession.CreateDefault("board-format").CaptureSnapshot();
             var formattedBoard = CombatBoardFormatter.FormatBoard(snapshot);
 
-            Ensure(formattedBoard.Contains("E"), "Formatted board should contain enemy marker.");
-            Ensure(formattedBoard.Contains("P"), "Formatted board should contain player marker.");
+            Ensure(formattedBoard.Contains("[E]"), "Formatted board should contain bracketed enemy marker.");
+            Ensure(formattedBoard.Contains("[P]"), "Formatted board should contain bracketed player marker.");
             Ensure(formattedBoard.Split(Environment.NewLine).Length == snapshot.Board.Height, "Formatted board should include one row per board row.");
             completedChecks.Add(nameof(VerifyBoardFormatting));
         }
@@ -43,7 +43,7 @@ namespace Spherebound.CoreCombatLoop.Verification
             var logs = ReplayLogs(presenter, session, moveResult.Events, session.CaptureSnapshot());
 
             var boardLog = logs.Single(log => log.Category == "Board");
-            Ensure(boardLog.Message.Contains(". P . . . ."), "Movement board output should show the moved player position.");
+            Ensure(boardLog.Message.Contains("[ ][P][ ][ ][ ][ ]"), "Movement board output should show the moved player position in bracketed format.");
             completedChecks.Add(nameof(VerifyMovementBoardOutput));
         }
 
@@ -79,8 +79,8 @@ namespace Spherebound.CoreCombatLoop.Verification
             var logs = ReplayLogs(presenter, session, attackResult.Events, snapshotAfter, snapshotBefore);
             var attackBoard = logs.Single(log => log.Category == "AttackBoard");
 
-            Ensure(attackBoard.Message.Contains("O"), "Attack overlay should mark the hit tile with O.");
-            Ensure(!attackBoard.Message.Contains("E"), "Attack overlay should replace the underlying board symbol on the hit tile.");
+            Ensure(attackBoard.Message.Contains("[O]"), "Attack overlay should mark the hit tile with bracketed O.");
+            Ensure(!attackBoard.Message.Contains("[E]"), "Attack overlay should replace the underlying board symbol on the hit tile.");
             completedChecks.Add(nameof(VerifyAttackOverlayOutput));
         }
 

@@ -11,6 +11,7 @@ overallSuccess &= RunCombatLoopSuite();
 overallSuccess &= RunScenarioRunnerSuite();
 overallSuccess &= RunUnityDebugActionSuite();
 overallSuccess &= RunCombatDebugSurfaceSuite();
+overallSuccess &= RunCombatDebugFileOutputSuite();
 
 if (overallSuccess)
 {
@@ -126,6 +127,30 @@ static bool RunCombatDebugSurfaceSuite()
     try
     {
         var checks = CombatDebugSurfaceVerifier.RunAll();
+        foreach (var check in checks)
+        {
+            Console.WriteLine($"  [pass] {check}");
+        }
+
+        Console.WriteLine($"[suite-pass] {suiteName}");
+        return true;
+    }
+    catch (Exception exception)
+    {
+        Console.Error.WriteLine($"[suite-fail] {suiteName}");
+        Console.Error.WriteLine($"  {exception.GetType().Name}: {exception.Message}");
+        return false;
+    }
+}
+
+static bool RunCombatDebugFileOutputSuite()
+{
+    const string suiteName = "CombatDebugFileOutputVerifier";
+    Console.WriteLine($"[suite] {suiteName}");
+
+    try
+    {
+        var checks = CombatDebugFileOutputVerifier.RunAll();
         foreach (var check in checks)
         {
             Console.WriteLine($"  [pass] {check}");

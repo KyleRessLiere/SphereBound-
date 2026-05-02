@@ -92,12 +92,9 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             {
                 for (var x = 0; x < board.Width; x++)
                 {
-                    if (x > 0)
-                    {
-                        builder.Append(' ');
-                    }
-
-                    builder.Append(cells[new GridPosition(x, y)]);
+                    builder.Append('[');
+                    builder.Append(cells[new GridPosition(x, y)] == '.' ? ' ' : cells[new GridPosition(x, y)]);
+                    builder.Append(']');
                 }
 
                 if (y > 0)

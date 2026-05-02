@@ -21,6 +21,7 @@ This executes the current verifier suites:
 - `ScenarioRunnerVerifier`
 - `UnityDebugActionVerifier`
 - `CombatDebugSurfaceVerifier`
+- `CombatDebugFileOutputVerifier`
 
 When the scenario suite runs, the runner also prints full per-scenario event logs and a scenario verification summary for each scenario.
 
@@ -93,6 +94,12 @@ Expected output looks like:
   [pass] VerifyFailedAttackDoesNotEmitOverlay
   [pass] VerifyActionCountUpdates
 [suite-pass] CombatDebugSurfaceVerifier
+[suite] CombatDebugFileOutputVerifier
+  [pass] VerifyConfigLoadOrCreate
+  [pass] VerifyDisabledConfigDoesNotEnableWriting
+  [pass] VerifyWriterCreatesDatedTimestampedFile
+  [pass] VerifyWriterPreservesOutputOrder
+[suite-pass] CombatDebugFileOutputVerifier
 [overall-pass] All verifier suites passed.
 ```
 
@@ -113,11 +120,12 @@ This verifies that the scripts compile as part of the Unity project, but it does
 - Deterministic scenario definitions, runner logic, logging, and verification contracts.
 
 `Assets/Scripts/CoreCombatLoop/Verification`
-- Verifier suites for the core combat loop, scenario runner, Unity debug-command surface, and combat debug-surface formatting/logging.
+- Verifier suites for the core combat loop, scenario runner, Unity debug-command surface, combat debug-surface formatting/logging, and file-output behavior.
 
 `Assets/Scripts/CoreCombatLoop/UnityBridge`
 - Unity-facing listener bridge plus debug action controls for move, attack, end turn, and restart.
 - Board snapshot and attack overlay formatting for Unity-side combat debugging.
+- Optional config-driven text-file output for the live debug stream.
 
 ## Notes
 
@@ -127,3 +135,6 @@ This verifies that the scripts compile as part of the Unity project, but it does
 - The runner now prints full per-scenario logs during the scenario suite.
 - The Unity bridge exposes visible Inspector buttons through a custom editor on `UnityCombatListenerBridge` for in-editor manual checks.
 - Movement logs now print full board snapshots, and successful attacks print single-symbol attack overlays using `X` and `O`.
+- Board and overlay output now use bracketed cells such as `[ ][P][ ][ ]`.
+- File output is controlled by [CombatDebugOutput/combat-debug-output.config](/Users/kyleress-liere/Documents/GitHub/Spherebound/CombatDebugOutput/combat-debug-output.config).
+- When `enabled=true`, the bridge writes live debug output into dated folders under `CombatDebugOutput/` with timestamped `.txt` files.
