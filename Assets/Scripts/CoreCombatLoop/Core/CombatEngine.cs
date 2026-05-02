@@ -12,6 +12,106 @@ namespace Spherebound.CoreCombatLoop.Core
             };
         }
 
+        public CombatActionResult RunBehaviorTurn(CombatState state, int unitId)
+        {
+            var events = new List<ICombatEvent>();
+
+            if (!state.TryGetUnit(unitId, out var actor))
+            {
+                events.Add(new ActionFailed(unitId, CombatActionType.TurnTransition, CombatFailureReason.ActorMissing));
+                return new CombatActionResult(false, events, CombatFailureReason.ActorMissing);
+            }
+
+            if (actor.BehaviorAssignment == null)
+            {
+                events.Add(new ActionFailed(unitId, CombatActionType.TurnTransition, CombatFailureReason.BehaviorMissing));
+                return new CombatActionResult(false, events, CombatFailureReason.BehaviorMissing);
+            }
+
+            var behaviorAssignment = actor.BehaviorAssignment!;
+            var success = true;
+            var failureReason = CombatFailureReason.None;
+
+            while (actor.IsAlive)
+            {
+                var expectedTurn = actor.Side == CombatUnitSide.Player ? CombatTurnSide.Player : CombatTurnSide.Enemy;
+                if (state.ActiveTurn != expectedTurn)
+                {
+                    break;
+                }
+
+                if (actor.Side == CombatUnitSide.Player && state.RemainingPlayerActions <= 0)
+                {
+                    break;
+                }
+
+                var context = CombatBehaviorContext.FromState(state, actor.Id);
+                var decision = behaviorAssignment.Behavior.DecideIntent(context);
+                events.Add(new BehaviorIntentSelected(
+                    actor.Id,
+                    decision.BehaviorId,
+                    decision.Intent.IntentType,
+                    decision.Intent.AbilityId,
+                    decision.Intent.TargetUnitId,
+                    decision.Intent.TargetPosition));
+
+                if (decision.Intent.IntentType == CombatBehaviorIntentType.Pass)
+                {
+                    break;
+                }
+
+                if (decision.Intent.IntentType == CombatBehaviorIntentType.EndTurn)
+                {
+                    break;
+                }
+
+                var intentResult = ResolveBehaviorIntent(state, decision.Intent);
+                events.AddRange(intentResult.Events);
+
+                if (!intentResult.Succeeded)
+                {
+                    success = false;
+                    failureReason = intentResult.FailureReason;
+                    break;
+                }
+
+                if (!state.TryGetUnit(unitId, out actor))
+                {
+                    break;
+                }
+
+                if (actor.Side != CombatUnitSide.Player)
+                {
+                    break;
+                }
+            }
+
+            return new CombatActionResult(success, events, failureReason);
+        }
+
+        public IReadOnlyList<ICombatEvent> RunBehaviorTurnCycle(CombatState state)
+        {
+            if (!TryGetCurrentActingUnitId(state, out var actingUnitId))
+            {
+                return System.Array.Empty<ICombatEvent>();
+            }
+
+            var events = new List<ICombatEvent>();
+            var turnResult = RunBehaviorTurn(state, actingUnitId);
+            events.AddRange(turnResult.Events);
+
+            if (state.ActiveTurn == CombatTurnSide.Player)
+            {
+                events.AddRange(EndPlayerTurnAndRunEnemyTurn(state));
+            }
+            else if (state.ActiveTurn == CombatTurnSide.Enemy)
+            {
+                events.AddRange(AdvanceEnemyTurnToPlayer(state));
+            }
+
+            return events;
+        }
+
         public CombatActionResult ResolveMove(CombatState state, int unitId, GridPosition destination)
         {
             var events = new List<ICombatEvent>
@@ -138,14 +238,7 @@ namespace Spherebound.CoreCombatLoop.Core
                     events.AddRange(enemyEvents.Events);
                 }
 
-                events.Add(new TurnEnded(CombatTurnSide.Enemy));
-
-                if (state.ContainsUnit(CombatScenarioFactory.PlayerUnitId) && state.ContainsUnit(CombatScenarioFactory.EnemyUnitId))
-                {
-                    state.ActiveTurn = CombatTurnSide.Player;
-                    state.RemainingPlayerActions = state.PlayerActionsPerTurn;
-                    events.Add(new TurnStarted(CombatTurnSide.Player));
-                }
+                events.AddRange(AdvanceEnemyTurnToPlayer(state));
             }
 
             return events;
@@ -158,17 +251,18 @@ namespace Spherebound.CoreCombatLoop.Core
                 return new CombatActionResult(false, System.Array.Empty<ICombatEvent>(), CombatFailureReason.ActorMissing);
             }
 
-            if (!state.TryGetUnit(CombatScenarioFactory.PlayerUnitId, out var player))
+            if (enemy.BehaviorAssignment == null)
             {
-                return new CombatActionResult(false, System.Array.Empty<ICombatEvent>(), CombatFailureReason.TargetMissing);
+                if (!state.TryGetUnit(CombatScenarioFactory.PlayerUnitId, out _))
+                {
+                    return new CombatActionResult(false, System.Array.Empty<ICombatEvent>(), CombatFailureReason.TargetMissing);
+                }
+
+                enemy.BehaviorAssignment = CombatBehaviorAssignment.Default(
+                    new MoveTowardTargetBehavior("enemy-default-chase", CombatScenarioFactory.PlayerUnitId));
             }
 
-            if (enemy.Position.IsOrthogonallyAdjacentTo(player.Position))
-            {
-                return ResolveAttack(state, enemyUnitId, player.Id);
-            }
-
-            return ResolveMove(state, enemyUnitId, GetEnemyMoveDestination(state, enemy, player));
+            return RunBehaviorTurn(state, enemyUnitId);
         }
 
         private static CombatFailureReason ValidateMovement(CombatState state, CombatUnitState actor, GridPosition destination)
@@ -207,6 +301,74 @@ namespace Spherebound.CoreCombatLoop.Core
             }
 
             return CombatFailureReason.None;
+        }
+
+        private CombatActionResult ResolveBehaviorIntent(CombatState state, CombatBehaviorIntent intent)
+        {
+            switch (intent.IntentType)
+            {
+                case CombatBehaviorIntentType.Move:
+                    if (!intent.TargetPosition.HasValue)
+                    {
+                        return new CombatActionResult(false, System.Array.Empty<ICombatEvent>(), CombatFailureReason.TargetOutOfBounds);
+                    }
+
+                    return ResolveMove(state, intent.ActorUnitId, intent.TargetPosition.Value);
+
+                case CombatBehaviorIntentType.UseAbility:
+                    if (string.IsNullOrWhiteSpace(intent.AbilityId))
+                    {
+                        return new CombatActionResult(false, System.Array.Empty<ICombatEvent>(), CombatFailureReason.AbilityMissing);
+                    }
+
+                    return ResolveAbility(state, new AbilityUseRequest(intent.ActorUnitId, intent.AbilityId!, intent.TargetUnitId, intent.TargetPosition));
+
+                case CombatBehaviorIntentType.Pass:
+                case CombatBehaviorIntentType.EndTurn:
+                    return new CombatActionResult(true, System.Array.Empty<ICombatEvent>(), CombatFailureReason.None);
+
+                default:
+                    return new CombatActionResult(false, System.Array.Empty<ICombatEvent>(), CombatFailureReason.InvalidTarget);
+            }
+        }
+
+        private IReadOnlyList<ICombatEvent> AdvanceEnemyTurnToPlayer(CombatState state)
+        {
+            var events = new List<ICombatEvent>
+            {
+                new TurnEnded(CombatTurnSide.Enemy),
+            };
+
+            if (state.ContainsUnit(CombatScenarioFactory.PlayerUnitId) && state.ContainsUnit(CombatScenarioFactory.EnemyUnitId))
+            {
+                state.ActiveTurn = CombatTurnSide.Player;
+                state.RemainingPlayerActions = state.PlayerActionsPerTurn;
+                events.Add(new TurnStarted(CombatTurnSide.Player));
+            }
+
+            return events;
+        }
+
+        private static bool TryGetCurrentActingUnitId(CombatState state, out int unitId)
+        {
+            if (state.ActiveTurn == CombatTurnSide.Player
+                && state.TryGetUnit(CombatScenarioFactory.PlayerUnitId, out var player)
+                && player.IsAlive)
+            {
+                unitId = player.Id;
+                return true;
+            }
+
+            if (state.ActiveTurn == CombatTurnSide.Enemy
+                && state.TryGetUnit(CombatScenarioFactory.EnemyUnitId, out var enemy)
+                && enemy.IsAlive)
+            {
+                unitId = enemy.Id;
+                return true;
+            }
+
+            unitId = 0;
+            return false;
         }
 
         private static GridPosition GetEnemyMoveDestination(CombatState state, CombatUnitState enemy, CombatUnitState player)

@@ -75,6 +75,37 @@ namespace Spherebound.CoreCombatLoop.Core
         public CombatTurnSide Side { get; }
     }
 
+    public sealed class BehaviorIntentSelected : ICombatEvent
+    {
+        public BehaviorIntentSelected(
+            int unitId,
+            string behaviorId,
+            CombatBehaviorIntentType intentType,
+            string? abilityId,
+            int? targetUnitId,
+            GridPosition? targetPosition)
+        {
+            UnitId = unitId;
+            BehaviorId = behaviorId;
+            IntentType = intentType;
+            AbilityId = abilityId;
+            TargetUnitId = targetUnitId;
+            TargetPosition = targetPosition;
+        }
+
+        public int UnitId { get; }
+
+        public string BehaviorId { get; }
+
+        public CombatBehaviorIntentType IntentType { get; }
+
+        public string? AbilityId { get; }
+
+        public int? TargetUnitId { get; }
+
+        public GridPosition? TargetPosition { get; }
+    }
+
     public sealed class TurnEnded : ICombatEvent
     {
         public TurnEnded(CombatTurnSide side)

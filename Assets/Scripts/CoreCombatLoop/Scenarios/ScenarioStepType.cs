@@ -6,5 +6,6 @@ namespace Spherebound.CoreCombatLoop.Scenarios
         Move = 1,
         Attack = 2,
         EndPlayerTurn = 3,
+        RunBehaviorTurnCycle = 4,
     }
 }

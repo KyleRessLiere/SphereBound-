@@ -31,3 +31,4 @@ Rules:
 - [07] [done] Unity Combat Debug File Output (`specDev/features/07-unity-combat-debug-file-output/`)
 - [08] [done] Ability And Player Definition System (`specDev/features/08-ability-and-player-definition-system/`)
 - [09] [done] Unity Basic Combat UI (`specDev/features/09-unity-basic-combat-ui/`)
+- [10] [done] Pluggable Combat Behavior System (`specDev/features/10-pluggable-combat-behavior-system/`)

@@ -12,6 +12,8 @@ namespace Spherebound.CoreCombatLoop.Core
         public const int PlayerStartingHealth = 5;
         public const int EnemyStartingHealth = 3;
         public const int PlayerActionsPerTurn = 2;
+        public const string ManualPlayerBehaviorId = "player-manual";
+        public const string EnemyMoveTowardPlayerBehaviorId = "enemy-move-toward-player";
         private static readonly MovementCapabilityDefinition DefaultMovementCapability = new MovementCapabilityDefinition(range: 1, actionCost: 1, orthogonalOnly: true);
         private static readonly AbilityDefinition BasicAttackAbility = new AbilityDefinition(
             BasicAttackAbilityId,
@@ -125,14 +127,16 @@ namespace Spherebound.CoreCombatLoop.Core
                         PlayerStartingHealth,
                         new GridPosition(1, 1),
                         UnitLifeState.Alive,
-                        PlayerDefinitionValue),
+                        PlayerDefinitionValue,
+                        CombatBehaviorAssignment.Manual(new ManualCombatBehavior(ManualPlayerBehaviorId))),
                     new CombatUnitState(
                         EnemyUnitId,
                         CombatUnitSide.Enemy,
                         EnemyStartingHealth,
                         new GridPosition(4, 4),
                         UnitLifeState.Alive,
-                        EnemyDefinitionValue),
+                        EnemyDefinitionValue,
+                        CombatBehaviorAssignment.Default(new MoveTowardTargetBehavior(EnemyMoveTowardPlayerBehaviorId, PlayerUnitId))),
                 });
         }
     }

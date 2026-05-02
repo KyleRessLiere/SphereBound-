@@ -47,5 +47,10 @@ namespace Spherebound.CoreCombatLoop.Scenarios
         {
             return new ScenarioStep(ScenarioStepType.EndPlayerTurn, null, null, null, description);
         }
+
+        public static ScenarioStep RunBehaviorTurnCycle(string description = "Run behavior turn cycle")
+        {
+            return new ScenarioStep(ScenarioStepType.RunBehaviorTurnCycle, null, null, null, description);
+        }
     }
 }

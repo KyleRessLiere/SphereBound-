@@ -137,6 +137,10 @@ namespace Spherebound.CoreCombatLoop.Scenarios
                     AppendEvents(combatEngine.EndPlayerTurnAndRunEnemyTurn(state), events, logLines);
                     return true;
 
+                case ScenarioStepType.RunBehaviorTurnCycle:
+                    AppendEvents(combatEngine.RunBehaviorTurnCycle(state), events, logLines);
+                    return true;
+
                 default:
                     runnerFailures.Add(new ScenarioRunnerFailure(
                         "unsupported-step",

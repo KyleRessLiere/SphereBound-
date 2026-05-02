@@ -11,6 +11,7 @@ namespace Spherebound.CoreCombatLoop.Scenarios
                 CreateMoveThenKillScenario(),
                 CreateInvalidMoveScenario(),
                 CreateEnemyTurnScenario(),
+                CreateBehaviorTurnScenario(),
             };
         }
 
@@ -106,8 +107,44 @@ namespace Spherebound.CoreCombatLoop.Scenarios
                     nameof(TurnStarted),
                     nameof(TurnEnded),
                     nameof(TurnStarted),
+                    nameof(BehaviorIntentSelected),
                     nameof(MoveRequested),
                     nameof(UnitMoved),
+                    nameof(TurnEnded),
+                    nameof(TurnStarted),
+                });
+        }
+
+        public static ScenarioDefinition CreateBehaviorTurnScenario()
+        {
+            return new ScenarioDefinition(
+                "behavior-turn-cycle",
+                "Behavior Turn Cycle",
+                () => CreateBehaviorDrivenState(),
+                new[]
+                {
+                    ScenarioStep.StartCombat(),
+                    ScenarioStep.RunBehaviorTurnCycle(),
+                },
+                new[]
+                {
+                    new ScenarioExpectation(CombatScenarioFactory.PlayerUnitId, expectedHealth: 5, expectedPosition: new GridPosition(1, 1), expectedLifeState: UnitLifeState.Alive),
+                    new ScenarioExpectation(CombatScenarioFactory.EnemyUnitId, expectedHealth: 2, expectedPosition: new GridPosition(1, 2), expectedLifeState: UnitLifeState.Alive),
+                },
+                true,
+                new[]
+                {
+                    nameof(TurnStarted),
+                    nameof(BehaviorIntentSelected),
+                    nameof(AbilityRequested),
+                    nameof(ActionStarted),
+                    nameof(AttackRequested),
+                    nameof(DamageRequested),
+                    nameof(UnitDamaged),
+                    nameof(BehaviorIntentSelected),
+                    nameof(TurnEnded),
+                    nameof(TurnStarted),
+                    nameof(BehaviorIntentSelected),
                     nameof(TurnEnded),
                     nameof(TurnStarted),
                 });
@@ -139,6 +176,42 @@ namespace Spherebound.CoreCombatLoop.Scenarios
                         enemyHealth,
                         enemyPosition,
                         UnitLifeState.Alive),
+                });
+        }
+
+        private static CombatState CreateBehaviorDrivenState()
+        {
+            return new CombatState(
+                new BoardDimensions(6, 6),
+                CombatTurnSide.Player,
+                2,
+                new[]
+                {
+                    new CombatUnitState(
+                        CombatScenarioFactory.PlayerUnitId,
+                        CombatUnitSide.Player,
+                        5,
+                        new GridPosition(1, 1),
+                        UnitLifeState.Alive,
+                        CombatScenarioFactory.PlayerDefinition,
+                        CombatBehaviorAssignment.Scenario(new ScriptedCombatBehavior(
+                            "player-scripted-combo",
+                            new[]
+                            {
+                                CombatBehaviorIntent.UseAbility(
+                                    CombatScenarioFactory.PlayerUnitId,
+                                    CombatScenarioFactory.BasicAttackAbilityId,
+                                    CombatScenarioFactory.EnemyUnitId),
+                                CombatBehaviorIntent.EndTurn(CombatScenarioFactory.PlayerUnitId),
+                            }))),
+                    new CombatUnitState(
+                        CombatScenarioFactory.EnemyUnitId,
+                        CombatUnitSide.Enemy,
+                        3,
+                        new GridPosition(1, 2),
+                        UnitLifeState.Alive,
+                        CombatScenarioFactory.EnemyDefinition,
+                        CombatBehaviorAssignment.Scenario(new PassTurnBehavior("enemy-pass"))),
                 });
         }
     }

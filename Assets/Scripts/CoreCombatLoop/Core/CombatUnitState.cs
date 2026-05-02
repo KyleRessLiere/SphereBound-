@@ -9,7 +9,8 @@ namespace Spherebound.CoreCombatLoop.Core
                 currentHealth,
                 position,
                 lifeState,
-                CombatScenarioFactory.GetDefaultDefinition(side))
+                CombatScenarioFactory.GetDefaultDefinition(side),
+                null)
         {
         }
 
@@ -20,6 +21,18 @@ namespace Spherebound.CoreCombatLoop.Core
             GridPosition position,
             UnitLifeState lifeState,
             CombatUnitDefinition definition)
+            : this(id, side, currentHealth, position, lifeState, definition, null)
+        {
+        }
+
+        public CombatUnitState(
+            int id,
+            CombatUnitSide side,
+            int currentHealth,
+            GridPosition position,
+            UnitLifeState lifeState,
+            CombatUnitDefinition definition,
+            CombatBehaviorAssignment? behaviorAssignment)
         {
             if (currentHealth < 0)
             {
@@ -33,6 +46,7 @@ namespace Spherebound.CoreCombatLoop.Core
             CurrentHealth = currentHealth;
             Position = position;
             LifeState = lifeState;
+            BehaviorAssignment = behaviorAssignment;
         }
 
         public int Id { get; }
@@ -46,6 +60,8 @@ namespace Spherebound.CoreCombatLoop.Core
         public GridPosition Position { get; set; }
 
         public UnitLifeState LifeState { get; set; }
+
+        public CombatBehaviorAssignment? BehaviorAssignment { get; set; }
 
         public bool IsAlive
         {

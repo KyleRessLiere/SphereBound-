@@ -37,6 +37,29 @@ It should be updated after each completed feature so the team can see the game's
 - Ability-caused forced movement is supported through the same movement validation and movement event path used by normal movement.
 - The current player definition now exposes multiple simple test abilities for runtime UI validation, including basic attack, forward-line, and front-cross style examples.
 
+## Behaviors
+
+- Units can now carry a pluggable combat behavior assignment in the pure C# core.
+- Behavior assignments currently support:
+  - default behavior sources
+  - scenario-assigned behavior sources
+  - manual behavior-compatible sources
+- Behaviors evaluate against a read-only combat-state view and produce action intents instead of directly changing gameplay state.
+- Supported intent types currently include:
+  - move
+  - use ability
+  - pass
+  - end turn
+- Built-in behavior types currently include:
+  - pass turn
+  - move toward target
+  - spam ability
+  - scripted sequence
+  - manual behavior shell
+- Existing enemy chase behavior is now represented through the behavior system instead of a hardcoded enemy branch.
+- Behavior decisions are logged through a dedicated event before downstream gameplay events resolve.
+- Deterministic scripted and behavior-driven turn cycles can now be initialized in scenario state and played without Unity input.
+
 ## Architecture
 
 - Gameplay rules live in a pure C# core.
@@ -50,6 +73,7 @@ It should be updated after each completed feature so the team can see the game's
 - The core runner can execute verifier suites outside Unity.
 - The current verification stack covers:
   - combat loop behavior
+  - pluggable combat behavior
   - ability and player-definition behavior
   - scenario runner behavior
   - Unity debug action behavior
@@ -62,6 +86,8 @@ It should be updated after each completed feature so the team can see the game's
 - The project has a deterministic scenario runner in pure C#.
 - Scenarios can execute scripted combat flows and verify results.
 - The runner prints ordered scenario logs and verification summaries.
+- Scenario steps now support behavior-driven automated turn cycles.
+- Scenario logs now include behavior-decision events alongside the normal gameplay event stream.
 
 ## Unity Debugging Surface
 

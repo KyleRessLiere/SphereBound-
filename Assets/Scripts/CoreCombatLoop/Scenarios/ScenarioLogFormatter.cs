@@ -11,6 +11,8 @@ namespace Spherebound.CoreCombatLoop.Scenarios
             {
                 case TurnStarted turnStarted:
                     return $"TurnStarted side={turnStarted.Side}";
+                case BehaviorIntentSelected behaviorIntentSelected:
+                    return $"BehaviorIntentSelected unit={behaviorIntentSelected.UnitId} behavior={behaviorIntentSelected.BehaviorId} intent={behaviorIntentSelected.IntentType} ability={behaviorIntentSelected.AbilityId ?? "none"} targetUnit={behaviorIntentSelected.TargetUnitId?.ToString() ?? "none"} targetPosition={behaviorIntentSelected.TargetPosition?.ToString() ?? "none"}";
                 case TurnEnded turnEnded:
                     return $"TurnEnded side={turnEnded.Side}";
                 case ActionStarted actionStarted:

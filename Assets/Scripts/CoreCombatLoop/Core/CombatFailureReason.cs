@@ -17,5 +17,6 @@ namespace Spherebound.CoreCombatLoop.Core
         InvalidTarget = 12,
         TargetOutOfBounds = 13,
         NoAffectedTiles = 14,
+        BehaviorMissing = 15,
     }
 }
