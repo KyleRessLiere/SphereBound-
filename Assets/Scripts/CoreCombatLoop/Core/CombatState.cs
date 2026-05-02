@@ -50,6 +50,8 @@ namespace Spherebound.CoreCombatLoop.Core
 
                 unitsById.Add(unit.Id, unit);
             }
+
+            PlayerActionsPerTurn = DeterminePlayerActionsPerTurn();
         }
 
         public BoardDimensions Board { get; }
@@ -57,6 +59,8 @@ namespace Spherebound.CoreCombatLoop.Core
         public CombatTurnSide ActiveTurn { get; set; }
 
         public int RemainingPlayerActions { get; set; }
+
+        public int PlayerActionsPerTurn { get; }
 
         public IReadOnlyDictionary<int, CombatUnitState> UnitsById
         {
@@ -99,6 +103,20 @@ namespace Spherebound.CoreCombatLoop.Core
         public bool RemoveUnit(int unitId)
         {
             return unitsById.Remove(unitId);
+        }
+
+        private int DeterminePlayerActionsPerTurn()
+        {
+            foreach (var entry in unitsById)
+            {
+                var unit = entry.Value;
+                if (unit.Side == CombatUnitSide.Player)
+                {
+                    return unit.Definition.ActionsPerTurn;
+                }
+            }
+
+            return 0;
         }
     }
 }

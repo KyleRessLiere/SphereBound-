@@ -30,6 +30,25 @@ namespace Spherebound.CoreCombatLoop.Core
         public int TargetUnitId { get; }
     }
 
+    public sealed class AbilityRequested : ICombatEvent
+    {
+        public AbilityRequested(int actorUnitId, string abilityId, int? targetUnitId, GridPosition? targetPosition)
+        {
+            ActorUnitId = actorUnitId;
+            AbilityId = abilityId;
+            TargetUnitId = targetUnitId;
+            TargetPosition = targetPosition;
+        }
+
+        public int ActorUnitId { get; }
+
+        public string AbilityId { get; }
+
+        public int? TargetUnitId { get; }
+
+        public GridPosition? TargetPosition { get; }
+    }
+
     public sealed class DamageRequested : ICombatEvent
     {
         public DamageRequested(int sourceUnitId, int targetUnitId, int amount)

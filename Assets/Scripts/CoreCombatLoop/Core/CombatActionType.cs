@@ -5,5 +5,6 @@ namespace Spherebound.CoreCombatLoop.Core
         Move = 0,
         Attack = 1,
         TurnTransition = 2,
+        Ability = 3,
     }
 }

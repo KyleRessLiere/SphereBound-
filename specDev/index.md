@@ -29,3 +29,4 @@ Rules:
 - [05] [done] Unity Debug Action Controls (`specDev/features/05-unity-debug-action-controls/`)
 - [06] [done] Unity Combat Debug Surface (`specDev/features/06-unity-combat-debug-surface/`)
 - [07] [done] Unity Combat Debug File Output (`specDev/features/07-unity-combat-debug-file-output/`)
+- [08] [done] Ability And Player Definition System (`specDev/features/08-ability-and-player-definition-system/`)

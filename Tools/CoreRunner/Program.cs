@@ -8,6 +8,7 @@ if (args.Length > 0)
 
 var overallSuccess = true;
 overallSuccess &= RunCombatLoopSuite();
+overallSuccess &= RunAbilityDefinitionSuite();
 overallSuccess &= RunScenarioRunnerSuite();
 overallSuccess &= RunUnityDebugActionSuite();
 overallSuccess &= RunCombatDebugSurfaceSuite();
@@ -93,6 +94,30 @@ static bool RunScenarioRunnerSuite()
     }
 
     return false;
+}
+
+static bool RunAbilityDefinitionSuite()
+{
+    const string suiteName = "AbilityDefinitionVerifier";
+    Console.WriteLine($"[suite] {suiteName}");
+
+    try
+    {
+        var checks = AbilityDefinitionVerifier.RunAll();
+        foreach (var check in checks)
+        {
+            Console.WriteLine($"  [pass] {check}");
+        }
+
+        Console.WriteLine($"[suite-pass] {suiteName}");
+        return true;
+    }
+    catch (Exception exception)
+    {
+        Console.Error.WriteLine($"[suite-fail] {suiteName}");
+        Console.Error.WriteLine($"  {exception.GetType().Name}: {exception.Message}");
+        return false;
+    }
 }
 
 static bool RunUnityDebugActionSuite()

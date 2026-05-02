@@ -25,6 +25,11 @@ namespace Spherebound.CoreCombatLoop.Core
                 return BuildFailedActionResult(events, unitId, CombatActionType.Move, destination);
             }
 
+            if (!TryValidateActionCost(state, actor, actor.Definition.Movement.ActionCost, CombatActionType.Move, events))
+            {
+                return BuildFailedActionResult(events, unitId, CombatActionType.Move, destination);
+            }
+
             var failureReason = ValidateMovement(state, actor, destination);
             if (failureReason != CombatFailureReason.None)
             {
@@ -37,46 +42,84 @@ namespace Spherebound.CoreCombatLoop.Core
             var origin = actor.Position;
             actor.Position = destination;
             events.Add(new UnitMoved(unitId, origin, destination));
-            AppendSuccessfulActionTail(state, actor, CombatActionType.Move, events);
+            AppendSuccessfulActionTail(state, actor, CombatActionType.Move, actor.Definition.Movement.ActionCost, events);
             return new CombatActionResult(true, events, CombatFailureReason.None);
         }
 
         public CombatActionResult ResolveAttack(CombatState state, int attackerUnitId, int targetUnitId)
         {
+            var abilityId = CombatScenarioFactory.BasicAttackAbilityId;
+            if (state.TryGetUnit(attackerUnitId, out var attacker)
+                && !string.IsNullOrWhiteSpace(attacker.Definition.DefaultAttackAbilityId))
+            {
+                abilityId = attacker.Definition.DefaultAttackAbilityId!;
+            }
+
+            return ResolveAbilityInternal(
+                state,
+                new AbilityUseRequest(attackerUnitId, abilityId, targetUnitId),
+                CombatActionType.Attack);
+        }
+
+        public CombatActionResult ResolveAbility(CombatState state, AbilityUseRequest request)
+        {
+            return ResolveAbilityInternal(state, request, CombatActionType.Ability);
+        }
+
+        private CombatActionResult ResolveAbilityInternal(
+            CombatState state,
+            AbilityUseRequest request,
+            CombatActionType fallbackActionType)
+        {
             var events = new List<ICombatEvent>
             {
-                new AttackRequested(attackerUnitId, targetUnitId),
-                new ActionStarted(attackerUnitId, CombatActionType.Attack),
+                new AbilityRequested(request.ActorUnitId, request.AbilityId, request.TargetUnitId, request.TargetPosition),
+                new ActionStarted(request.ActorUnitId, fallbackActionType),
             };
 
-            if (!TryGetValidActor(state, attackerUnitId, CombatActionType.Attack, events, out var attacker))
+            if (!TryGetValidActor(state, request.ActorUnitId, fallbackActionType, events, out var actor))
             {
-                return BuildFailedActionResult(events, attackerUnitId, CombatActionType.Attack);
+                return BuildFailedActionResult(events, request.ActorUnitId, fallbackActionType);
             }
 
-            if (!state.TryGetUnit(targetUnitId, out var target))
+            if (!actor.Definition.TryGetAbility(request.AbilityId, out var ability))
             {
-                events.Add(new ActionFailed(attackerUnitId, CombatActionType.Attack, CombatFailureReason.TargetMissing));
-                events.Add(new ActionEnded(attackerUnitId, CombatActionType.Attack));
-                return new CombatActionResult(false, events, CombatFailureReason.TargetMissing);
+                events.Add(new ActionFailed(request.ActorUnitId, fallbackActionType, CombatFailureReason.AbilityMissing));
+                events.Add(new ActionEnded(request.ActorUnitId, fallbackActionType));
+                return new CombatActionResult(false, events, CombatFailureReason.AbilityMissing);
             }
 
-            if (!target.IsAlive)
+            if (!TryValidateActionCost(state, actor, ability.ActionCost, ability.ActionType, events))
             {
-                events.Add(new ActionFailed(attackerUnitId, CombatActionType.Attack, CombatFailureReason.TargetDead));
-                events.Add(new ActionEnded(attackerUnitId, CombatActionType.Attack));
-                return new CombatActionResult(false, events, CombatFailureReason.TargetDead);
+                events.Add(new ActionEnded(request.ActorUnitId, ability.ActionType));
+                return new CombatActionResult(false, events, CombatFailureReason.NoActionsRemaining);
             }
 
-            if (!attacker.Position.IsOrthogonallyAdjacentTo(target.Position))
+            var affectedTiles = CombatAbilityResolver.ResolveAffectedTiles(state, actor, ability, request, out var abilityFailureReason);
+            if (abilityFailureReason != CombatFailureReason.None)
             {
-                events.Add(new ActionFailed(attackerUnitId, CombatActionType.Attack, CombatFailureReason.TargetNotAdjacent));
-                events.Add(new ActionEnded(attackerUnitId, CombatActionType.Attack));
-                return new CombatActionResult(false, events, CombatFailureReason.TargetNotAdjacent);
+                events.Add(new ActionFailed(request.ActorUnitId, ability.ActionType, abilityFailureReason));
+                events.Add(new ActionEnded(request.ActorUnitId, ability.ActionType));
+                return new CombatActionResult(false, events, abilityFailureReason);
             }
 
-            ApplyDamage(state, attacker, target, 1, events);
-            AppendSuccessfulActionTail(state, attacker, CombatActionType.Attack, events);
+            var affectedUnits = GetAffectedUnits(state, affectedTiles, actor, ability.TargetRule);
+            if (ability.RequiresAffectedUnit && affectedUnits.Count == 0)
+            {
+                events.Add(new ActionFailed(request.ActorUnitId, ability.ActionType, CombatFailureReason.NoAffectedTiles));
+                events.Add(new ActionEnded(request.ActorUnitId, ability.ActionType));
+                return new CombatActionResult(false, events, CombatFailureReason.NoAffectedTiles);
+            }
+
+            if (!TryValidateForcedMovementPlans(state, actor, ability, affectedUnits, out var movementPlans, out var movementFailureReason))
+            {
+                events.Add(new ActionFailed(request.ActorUnitId, ability.ActionType, movementFailureReason));
+                events.Add(new ActionEnded(request.ActorUnitId, ability.ActionType));
+                return new CombatActionResult(false, events, movementFailureReason);
+            }
+
+            ApplyAbilityEffects(state, actor, ability, affectedUnits, movementPlans, events);
+            AppendSuccessfulActionTail(state, actor, ability.ActionType, ability.ActionCost, events);
             return new CombatActionResult(true, events, CombatFailureReason.None);
         }
 
@@ -100,7 +143,7 @@ namespace Spherebound.CoreCombatLoop.Core
                 if (state.ContainsUnit(CombatScenarioFactory.PlayerUnitId) && state.ContainsUnit(CombatScenarioFactory.EnemyUnitId))
                 {
                     state.ActiveTurn = CombatTurnSide.Player;
-                    state.RemainingPlayerActions = CombatScenarioFactory.PlayerActionsPerTurn;
+                    state.RemainingPlayerActions = state.PlayerActionsPerTurn;
                     events.Add(new TurnStarted(CombatTurnSide.Player));
                 }
             }
@@ -135,7 +178,25 @@ namespace Spherebound.CoreCombatLoop.Core
                 return CombatFailureReason.DestinationOutOfBounds;
             }
 
-            if (!actor.Position.IsOrthogonallyAdjacentTo(destination))
+            var deltaX = destination.X - actor.Position.X;
+            if (deltaX < 0)
+            {
+                deltaX = -deltaX;
+            }
+
+            var deltaY = destination.Y - actor.Position.Y;
+            if (deltaY < 0)
+            {
+                deltaY = -deltaY;
+            }
+
+            var movement = actor.Definition.Movement;
+            if (movement.OrthogonalOnly && !actor.Position.IsOrthogonallyAdjacentTo(destination))
+            {
+                return CombatFailureReason.DestinationNotOrthogonallyAdjacent;
+            }
+
+            if ((deltaX + deltaY) > movement.Range)
             {
                 return CombatFailureReason.DestinationNotOrthogonallyAdjacent;
             }
@@ -242,11 +303,12 @@ namespace Spherebound.CoreCombatLoop.Core
             CombatState state,
             CombatUnitState actor,
             CombatActionType actionType,
+            int actionCost,
             List<ICombatEvent> events)
         {
             if (actor.Side == CombatUnitSide.Player)
             {
-                state.RemainingPlayerActions -= 1;
+                state.RemainingPlayerActions -= actionCost;
                 events.Add(new ActionSpent(actor.Id, state.RemainingPlayerActions));
             }
 
@@ -295,13 +357,160 @@ namespace Spherebound.CoreCombatLoop.Core
                 return false;
             }
 
-            if (actor.Side == CombatUnitSide.Player && state.RemainingPlayerActions <= 0)
+            return true;
+        }
+
+        private static bool TryValidateActionCost(
+            CombatState state,
+            CombatUnitState actor,
+            int actionCost,
+            CombatActionType actionType,
+            List<ICombatEvent> events)
+        {
+            if (actor.Side == CombatUnitSide.Player && state.RemainingPlayerActions < actionCost)
             {
-                events.Add(new ActionFailed(unitId, actionType, CombatFailureReason.NoActionsRemaining));
+                events.Add(new ActionFailed(actor.Id, actionType, CombatFailureReason.NoActionsRemaining));
                 return false;
             }
 
             return true;
+        }
+
+        private static List<CombatUnitState> GetAffectedUnits(
+            CombatState state,
+            IReadOnlyList<ResolvedAbilityTile> affectedTiles,
+            CombatUnitState actor,
+            AbilityTargetRule targetRule)
+        {
+            var affectedUnits = new List<CombatUnitState>();
+            for (var index = 0; index < affectedTiles.Count; index += 1)
+            {
+                var tile = affectedTiles[index];
+                if (!tile.OccupantUnitId.HasValue)
+                {
+                    continue;
+                }
+
+                if (!state.TryGetUnit(tile.OccupantUnitId.Value, out var unit))
+                {
+                    continue;
+                }
+
+                if (!CombatAbilityResolver.MatchesTargetRule(actor, unit, targetRule))
+                {
+                    continue;
+                }
+
+                if (!affectedUnits.Contains(unit))
+                {
+                    affectedUnits.Add(unit);
+                }
+            }
+
+            return affectedUnits;
+        }
+
+        private static bool TryValidateForcedMovementPlans(
+            CombatState state,
+            CombatUnitState actor,
+            AbilityDefinition ability,
+            IReadOnlyList<CombatUnitState> affectedUnits,
+            out List<MovementPlan> movementPlans,
+            out CombatFailureReason failureReason)
+        {
+            movementPlans = new List<MovementPlan>();
+            failureReason = CombatFailureReason.None;
+
+            for (var effectIndex = 0; effectIndex < ability.Effects.Count; effectIndex += 1)
+            {
+                var effect = ability.Effects[effectIndex];
+                if (effect.Kind != AbilityEffectKind.ForcedMovement)
+                {
+                    continue;
+                }
+
+                for (var unitIndex = 0; unitIndex < affectedUnits.Count; unitIndex += 1)
+                {
+                    var affectedUnit = affectedUnits[unitIndex];
+                    var destination = new GridPosition(
+                        affectedUnit.Position.X + effect.ForcedMovementOffset.X,
+                        affectedUnit.Position.Y + effect.ForcedMovementOffset.Y);
+                    failureReason = ValidateMovement(state, affectedUnit, destination);
+                    if (failureReason != CombatFailureReason.None)
+                    {
+                        return false;
+                    }
+
+                    movementPlans.Add(new MovementPlan(affectedUnit, destination));
+                }
+            }
+
+            return true;
+        }
+
+        private static void ApplyAbilityEffects(
+            CombatState state,
+            CombatUnitState actor,
+            AbilityDefinition ability,
+            IReadOnlyList<CombatUnitState> affectedUnits,
+            IReadOnlyList<MovementPlan> movementPlans,
+            List<ICombatEvent> events)
+        {
+            for (var effectIndex = 0; effectIndex < ability.Effects.Count; effectIndex += 1)
+            {
+                var effect = ability.Effects[effectIndex];
+                switch (effect.Kind)
+                {
+                    case AbilityEffectKind.Damage:
+                        for (var unitIndex = 0; unitIndex < affectedUnits.Count; unitIndex += 1)
+                        {
+                            var target = affectedUnits[unitIndex];
+                            events.Add(new AttackRequested(actor.Id, target.Id));
+                            ApplyDamage(state, actor, target, effect.Amount, events);
+                        }
+                        break;
+
+                    case AbilityEffectKind.Healing:
+                        for (var unitIndex = 0; unitIndex < affectedUnits.Count; unitIndex += 1)
+                        {
+                            ApplyHealing(affectedUnits[unitIndex], effect.Amount);
+                        }
+                        break;
+
+                    case AbilityEffectKind.ForcedMovement:
+                        for (var planIndex = 0; planIndex < movementPlans.Count; planIndex += 1)
+                        {
+                            ApplyMovementPlan(movementPlans[planIndex], events);
+                        }
+                        break;
+                }
+            }
+        }
+
+        private static void ApplyHealing(CombatUnitState target, int amount)
+        {
+            target.CurrentHealth += amount;
+        }
+
+        private static void ApplyMovementPlan(MovementPlan movementPlan, List<ICombatEvent> events)
+        {
+            events.Add(new MoveRequested(movementPlan.Unit.Id, movementPlan.Destination));
+            var origin = movementPlan.Unit.Position;
+            movementPlan.Unit.Position = movementPlan.Destination;
+            events.Add(new UnitMoved(movementPlan.Unit.Id, origin, movementPlan.Destination));
+        }
+
+        private readonly struct MovementPlan
+        {
+            public MovementPlan(CombatUnitState unit, GridPosition destination)
+            {
+                Unit = unit;
+                Destination = destination;
+            }
+
+            public CombatUnitState Unit { get; }
+
+            public GridPosition Destination { get; }
         }
     }
 }

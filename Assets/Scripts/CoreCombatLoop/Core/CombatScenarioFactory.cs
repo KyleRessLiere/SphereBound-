@@ -2,6 +2,7 @@ namespace Spherebound.CoreCombatLoop.Core
 {
     public static class CombatScenarioFactory
     {
+        public const string BasicAttackAbilityId = "basic-attack";
         public const int PlayerUnitId = 1;
         public const int EnemyUnitId = 2;
         public const int BoardWidth = 6;
@@ -9,6 +10,61 @@ namespace Spherebound.CoreCombatLoop.Core
         public const int PlayerStartingHealth = 5;
         public const int EnemyStartingHealth = 3;
         public const int PlayerActionsPerTurn = 2;
+        private static readonly MovementCapabilityDefinition DefaultMovementCapability = new MovementCapabilityDefinition(range: 1, actionCost: 1, orthogonalOnly: true);
+        private static readonly AbilityDefinition BasicAttackAbility = new AbilityDefinition(
+            BasicAttackAbilityId,
+            "Basic Attack",
+            CombatActionType.Attack,
+            actionCost: 1,
+            AbilityTargetingMode.AdjacentUnit,
+            AbilityTargetRule.Enemy | AbilityTargetRule.OccupiedTile,
+            new AbilityTilePattern(
+                AbilityTilePatternAnchor.TargetPosition,
+                new[]
+                {
+                    new GridOffset(0, 0),
+                }),
+            new[]
+            {
+                AbilityEffectDefinition.Damage(1),
+            });
+        private static readonly CombatUnitDefinition PlayerDefinitionValue = new CombatUnitDefinition(
+            "player-warrior",
+            "Player Warrior",
+            PlayerStartingHealth,
+            PlayerActionsPerTurn,
+            DefaultMovementCapability,
+            new[]
+            {
+                BasicAttackAbility,
+            },
+            BasicAttackAbilityId);
+        private static readonly CombatUnitDefinition EnemyDefinitionValue = new CombatUnitDefinition(
+            "enemy-grunt",
+            "Enemy Grunt",
+            EnemyStartingHealth,
+            actionsPerTurn: 1,
+            DefaultMovementCapability,
+            new[]
+            {
+                BasicAttackAbility,
+            },
+            BasicAttackAbilityId);
+
+        public static CombatUnitDefinition PlayerDefinition
+        {
+            get { return PlayerDefinitionValue; }
+        }
+
+        public static CombatUnitDefinition EnemyDefinition
+        {
+            get { return EnemyDefinitionValue; }
+        }
+
+        public static CombatUnitDefinition GetDefaultDefinition(CombatUnitSide side)
+        {
+            return side == CombatUnitSide.Player ? PlayerDefinitionValue : EnemyDefinitionValue;
+        }
 
         public static CombatState CreateInitialState()
         {
@@ -23,13 +79,15 @@ namespace Spherebound.CoreCombatLoop.Core
                         CombatUnitSide.Player,
                         PlayerStartingHealth,
                         new GridPosition(1, 1),
-                        UnitLifeState.Alive),
+                        UnitLifeState.Alive,
+                        PlayerDefinitionValue),
                     new CombatUnitState(
                         EnemyUnitId,
                         CombatUnitSide.Enemy,
                         EnemyStartingHealth,
                         new GridPosition(4, 4),
-                        UnitLifeState.Alive),
+                        UnitLifeState.Alive,
+                        EnemyDefinitionValue),
                 });
         }
     }

@@ -25,6 +25,8 @@ namespace Spherebound.CoreCombatLoop.Scenarios
                     return $"UnitMoved unit={unitMoved.UnitId} from={unitMoved.From} to={unitMoved.To}";
                 case AttackRequested attackRequested:
                     return $"AttackRequested attacker={attackRequested.AttackerUnitId} target={attackRequested.TargetUnitId}";
+                case AbilityRequested abilityRequested:
+                    return $"AbilityRequested actor={abilityRequested.ActorUnitId} ability={abilityRequested.AbilityId} targetUnit={abilityRequested.TargetUnitId?.ToString() ?? "none"} targetPosition={abilityRequested.TargetPosition?.ToString() ?? "none"}";
                 case DamageRequested damageRequested:
                     return $"DamageRequested source={damageRequested.SourceUnitId} target={damageRequested.TargetUnitId} amount={damageRequested.Amount.ToString(CultureInfo.InvariantCulture)}";
                 case UnitDamaged unitDamaged:
