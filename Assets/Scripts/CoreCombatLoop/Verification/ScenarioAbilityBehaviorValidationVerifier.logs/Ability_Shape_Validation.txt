@@ -1,0 +1,55 @@
+﻿suite: ScenarioAbilityBehaviorValidationVerifier
+check: Ability Shape Validation
+result: pass
+
+[initial-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][E][E][ ][ ][ ]
+[ ][E][E][E][ ][ ]
+[ ][ ][P][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[events]
+TurnStarted side=Player
+BehaviorIntentSelected unit=1 behavior=player-front-cross-shape intent=UseAbility ability=front-cross targetUnit=none targetPosition=(2, 2)
+AbilityRequested actor=1 ability=front-cross targetUnit=none targetPosition=(2, 2)
+ActionStarted unit=1 action=Ability
+AttackRequested attacker=1 target=2
+DamageRequested source=1 target=2 amount=1
+UnitDamaged unit=2 previous=1 current=0 amount=1
+UnitDying unit=2
+UnitDeath unit=2
+UnitRemoved unit=2 position=(2, 2)
+AttackRequested attacker=1 target=3
+DamageRequested source=1 target=3 amount=1
+UnitDamaged unit=3 previous=1 current=0 amount=1
+UnitDying unit=3
+UnitDeath unit=3
+UnitRemoved unit=3 position=(1, 2)
+AttackRequested attacker=1 target=4
+DamageRequested source=1 target=4 amount=1
+UnitDamaged unit=4 previous=1 current=0 amount=1
+UnitDying unit=4
+UnitDeath unit=4
+UnitRemoved unit=4 position=(3, 2)
+AttackRequested attacker=1 target=5
+DamageRequested source=1 target=5 amount=1
+UnitDamaged unit=5 previous=1 current=0 amount=1
+UnitDying unit=5
+UnitDeath unit=5
+UnitRemoved unit=5 position=(2, 3)
+ActionSpent unit=1 remainingActions=1
+ActionEnded unit=1 action=Attack
+BehaviorIntentSelected unit=1 behavior=player-front-cross-shape intent=EndTurn ability=none targetUnit=none targetPosition=none
+TurnEnded side=Player
+TurnStarted side=Enemy
+TurnEnded side=Enemy
+
+[final-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][E][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][P][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]

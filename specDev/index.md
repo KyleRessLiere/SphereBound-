@@ -33,3 +33,4 @@ Rules:
 - [09] [done] Unity Basic Combat UI (`specDev/features/09-unity-basic-combat-ui/`)
 - [10] [done] Pluggable Combat Behavior System (`specDev/features/10-pluggable-combat-behavior-system/`)
 - [11] [done] Verifier Log Output Files (`specDev/features/11-verifier-log-output-files/`)
+- [12] [done] Scenario Ability And Behavior Validation (`specDev/features/12-scenario-ability-behavior-validation/`)

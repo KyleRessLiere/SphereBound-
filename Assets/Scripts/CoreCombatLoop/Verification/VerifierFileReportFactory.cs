@@ -175,6 +175,44 @@ namespace Spherebound.CoreCombatLoop.Verification
             return new VerifierSuiteFileReport(suiteName, true, checks);
         }
 
+        public static VerifierSuiteFileReport CreateScenarioAbilityBehaviorValidationSuiteReport()
+        {
+            var report = ScenarioAbilityBehaviorValidationVerifier.CreateReport();
+            var checks = new List<VerifierCheckFileReport>();
+
+            for (var index = 0; index < report.ScenarioChecks.Count; index += 1)
+            {
+                var scenarioCheck = report.ScenarioChecks[index];
+                var scenarioRun = scenarioCheck.ScenarioRun;
+                checks.Add(new VerifierCheckFileReport(
+                    new VerifierCheckLogDefinition(report.SuiteName, scenarioCheck.CheckName, VerifierLogCategory.CombatFlow),
+                    scenarioCheck.Succeeded,
+                    CombatFlowVerifierLogBuilder.Build(
+                        report.SuiteName,
+                        scenarioCheck.CheckName,
+                        scenarioCheck.Succeeded,
+                        VerificationBoardStateFormatter.FormatBoard(scenarioRun.Scenario.CreateInitialState()),
+                        scenarioRun.LogLines,
+                        VerificationBoardStateFormatter.FormatBoard(scenarioRun.FinalState),
+                        scenarioRun.RunnerFailures.Select(failure => $"{failure.Code}: {failure.Message}").ToList())));
+            }
+
+            for (var index = 0; index < report.CompletedChecks.Count; index += 1)
+            {
+                var checkName = report.CompletedChecks[index];
+                checks.Add(new VerifierCheckFileReport(
+                    new VerifierCheckLogDefinition(report.SuiteName, checkName, VerifierLogCategory.Assertion),
+                    true,
+                    AssertionVerifierLogBuilder.Build(
+                        report.SuiteName,
+                        checkName,
+                        true,
+                        "Scenario ability/behavior validation invariants passed.")));
+            }
+
+            return new VerifierSuiteFileReport(report.SuiteName, report.Succeeded, checks);
+        }
+
         private static VerifierCheckFileReport AssertionCheck(string suiteName, string checkName, string summary)
         {
             return new VerifierCheckFileReport(

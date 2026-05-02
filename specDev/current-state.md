@@ -76,6 +76,7 @@ It should be updated after each completed feature so the team can see the game's
   - pluggable combat behavior
   - ability and player-definition behavior
   - scenario runner behavior
+  - scenario-based ability and behavior validation
   - Unity debug action behavior
   - runtime UI-facing ability metadata and effect-tile exposure
   - Unity combat debug surface behavior
@@ -89,6 +90,13 @@ It should be updated after each completed feature so the team can see the game's
 - The runner prints ordered scenario logs and verification summaries.
 - Scenario steps now support behavior-driven automated turn cycles.
 - Scenario logs now include behavior-decision events alongside the normal gameplay event stream.
+- A dedicated scenario-validation suite now covers deterministic combat scenarios for:
+  - basic attack hit
+  - basic attack miss
+  - multi-tile shape validation
+  - multi-turn combat resolution
+  - behavior-driven movement and attack transition
+  - forced movement validation
 - The runner now writes stable per-check verifier log files into verifier-specific sibling `.logs` directories beside the verifier code in `Assets/Scripts/CoreCombatLoop/Verification/`.
 - Combat-flow verifiers emit board/event-focused log files.
 - Small component verifiers emit compact assertion-focused log files.

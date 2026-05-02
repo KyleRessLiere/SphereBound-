@@ -1,0 +1,6 @@
+﻿suite: ScenarioAbilityBehaviorValidationVerifier
+check: VerifySuiteNaming
+result: pass
+
+[summary]
+Scenario ability/behavior validation invariants passed.

@@ -27,6 +27,8 @@ overallSuccess &= RunCombatDebugFileOutputSuite();
 WriteVerifierLogs(projectRoot, VerifierFileReportFactory.CreateCombatDebugFileOutputSuiteReport());
 overallSuccess &= RunVerifierLogOutputSuite();
 WriteVerifierLogs(projectRoot, VerifierFileReportFactory.CreateVerifierLogOutputSuiteReport());
+overallSuccess &= RunScenarioAbilityBehaviorValidationSuite();
+WriteVerifierLogs(projectRoot, VerifierFileReportFactory.CreateScenarioAbilityBehaviorValidationSuiteReport());
 
 if (overallSuccess)
 {
@@ -276,6 +278,54 @@ static bool RunVerifierLogOutputSuite()
         Console.Error.WriteLine($"  {exception.GetType().Name}: {exception.Message}");
         return false;
     }
+}
+
+static bool RunScenarioAbilityBehaviorValidationSuite()
+{
+    var report = ScenarioAbilityBehaviorValidationVerifier.CreateReport();
+    Console.WriteLine($"[suite] {report.SuiteName}");
+
+    foreach (var scenarioCheck in report.ScenarioChecks)
+    {
+        var scenarioRun = scenarioCheck.ScenarioRun;
+        Console.WriteLine($"  [scenario] {scenarioRun.Scenario.Name}");
+        foreach (var logLine in scenarioRun.LogLines)
+        {
+            Console.WriteLine($"    {logLine}");
+        }
+
+        if (scenarioRun.Verification.Succeeded)
+        {
+            Console.WriteLine("  [scenario-pass] verification");
+        }
+        else
+        {
+            Console.WriteLine("  [scenario-fail] verification");
+            foreach (var failure in scenarioRun.Verification.Failures)
+            {
+                Console.WriteLine($"    {failure.Code}: {failure.Message}");
+            }
+        }
+    }
+
+    foreach (var check in report.CompletedChecks)
+    {
+        Console.WriteLine($"  [pass] {check}");
+    }
+
+    if (report.Succeeded)
+    {
+        Console.WriteLine($"[suite-pass] {report.SuiteName}");
+        return true;
+    }
+
+    Console.Error.WriteLine($"[suite-fail] {report.SuiteName}");
+    foreach (var failure in report.CheckFailures)
+    {
+        Console.Error.WriteLine($"  {failure}");
+    }
+
+    return false;
 }
 
 static void WriteVerifierLogs(string projectRoot, VerifierSuiteFileReport suiteReport)
