@@ -28,11 +28,9 @@ namespace Spherebound.CoreCombatLoop.Verification
 
             var result = CombatDebugCommandExecutor.Execute(
                 session,
-                new CombatDebugCommandRequest(
-                    CombatDebugCommandType.Move,
+                CombatDebugCommandRequest.Move(
                     CombatScenarioFactory.PlayerUnitId,
-                    new GridPosition(1, 2),
-                    CombatScenarioFactory.EnemyUnitId));
+                    new GridPosition(1, 2)));
 
             Ensure(result.Succeeded, "Debug move should succeed for a valid adjacent destination.");
             Ensure(result.CommandFailureReason == CombatDebugCommandFailureReason.None, "Debug move should not fail at the bridge-command layer.");
@@ -73,10 +71,8 @@ namespace Spherebound.CoreCombatLoop.Verification
 
             var result = CombatDebugCommandExecutor.Execute(
                 session,
-                new CombatDebugCommandRequest(
-                    CombatDebugCommandType.Attack,
+                CombatDebugCommandRequest.Attack(
                     CombatScenarioFactory.PlayerUnitId,
-                    new GridPosition(1, 1),
                     CombatScenarioFactory.EnemyUnitId));
 
             Ensure(result.Succeeded, "Debug attack should succeed for a valid adjacent target.");
@@ -96,11 +92,8 @@ namespace Spherebound.CoreCombatLoop.Verification
 
             var result = CombatDebugCommandExecutor.Execute(
                 session,
-                new CombatDebugCommandRequest(
-                    CombatDebugCommandType.EndTurn,
-                    CombatScenarioFactory.PlayerUnitId,
-                    new GridPosition(0, 0),
-                    CombatScenarioFactory.EnemyUnitId));
+                CombatDebugCommandRequest.EndTurn(
+                    CombatScenarioFactory.PlayerUnitId));
 
             Ensure(result.Succeeded, "Debug end turn should succeed.");
             var eventNames = result.Events.Select(evt => evt.GetType().Name).ToList();
@@ -119,11 +112,9 @@ namespace Spherebound.CoreCombatLoop.Verification
             firstSession.StartCombat();
             CombatDebugCommandExecutor.Execute(
                 firstSession,
-                new CombatDebugCommandRequest(
-                    CombatDebugCommandType.Move,
+                CombatDebugCommandRequest.Move(
                     CombatScenarioFactory.PlayerUnitId,
-                    new GridPosition(1, 2),
-                    CombatScenarioFactory.EnemyUnitId));
+                    new GridPosition(1, 2)));
 
             var restartedSession = ObservableCombatSession.CreateDefault("restart-after");
             restartedSession.StartCombat();
@@ -139,11 +130,9 @@ namespace Spherebound.CoreCombatLoop.Verification
         {
             var result = CombatDebugCommandExecutor.Execute(
                 null,
-                new CombatDebugCommandRequest(
-                    CombatDebugCommandType.Move,
+                CombatDebugCommandRequest.Move(
                     CombatScenarioFactory.PlayerUnitId,
-                    new GridPosition(1, 2),
-                    CombatScenarioFactory.EnemyUnitId));
+                    new GridPosition(1, 2)));
 
             Ensure(!result.Succeeded, "Missing session should fail.");
             Ensure(result.CommandFailureReason == CombatDebugCommandFailureReason.SessionUnavailable, "Missing session should fail at the bridge-command layer.");

@@ -35,6 +35,7 @@ namespace Spherebound.CoreCombatLoop.Verification
         {
             Ensure(CombatScenarioFactory.PlayerDefinition.TryGetAbility(CombatScenarioFactory.BasicAttackAbilityId, out var basicAttack), "Player definition should expose the basic attack ability.");
             Ensure(basicAttack.ActionCost == 1, "Basic attack ability should cost one action.");
+            Ensure(basicAttack.Description == "adjacent enemy", "Basic attack ability should expose description metadata.");
             Ensure(basicAttack.TargetingMode == AbilityTargetingMode.AdjacentUnit, "Basic attack should use adjacent-unit targeting.");
             Ensure(basicAttack.Effects.Any(effect => effect.Kind == AbilityEffectKind.Damage && effect.Amount == 1), "Basic attack should deal one damage.");
             completedChecks.Add(nameof(VerifyBasicAttackAbilityDefinition));
@@ -46,6 +47,7 @@ namespace Spherebound.CoreCombatLoop.Verification
             var expensiveAbility = new AbilityDefinition(
                 expensiveAbilityId,
                 "Heavy Slash",
+                "adjacent heavy strike",
                 CombatActionType.Attack,
                 actionCost: 2,
                 AbilityTargetingMode.AdjacentUnit,
@@ -160,6 +162,7 @@ namespace Spherebound.CoreCombatLoop.Verification
             var pushAbility = new AbilityDefinition(
                 pushAbilityId,
                 "Shield Bash",
+                "push adjacent enemy",
                 CombatActionType.Attack,
                 actionCost: 1,
                 AbilityTargetingMode.AdjacentUnit,

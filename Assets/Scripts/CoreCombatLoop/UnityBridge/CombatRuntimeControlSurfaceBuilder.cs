@@ -1,0 +1,73 @@
+using System.Collections.Generic;
+using Spherebound.CoreCombatLoop.Core;
+
+namespace Spherebound.CoreCombatLoop.UnityBridge
+{
+    public static class CombatRuntimeControlSurfaceBuilder
+    {
+        public static CombatRuntimeControlSurfaceModel Build(CombatState state)
+        {
+            if (!TryGetPlayerUnit(state, out var player))
+            {
+                return new CombatRuntimeControlSurfaceModel(CreateMoveButtons(isInteractable: false), canEndTurn: false, abilityButtons: new List<CombatRuntimeAbilityButtonModel>().AsReadOnly());
+            }
+
+            var canIssuePlayerCommands = player.IsAlive && state.ActiveTurn == CombatTurnSide.Player;
+            var moveButtons = CreateMoveButtons(canIssuePlayerCommands && state.RemainingPlayerActions >= player.Definition.Movement.ActionCost);
+            var abilityButtons = BuildAbilityButtons(state, player, canIssuePlayerCommands);
+
+            return new CombatRuntimeControlSurfaceModel(moveButtons, canIssuePlayerCommands, abilityButtons);
+        }
+
+        private static IReadOnlyList<CombatRuntimeMoveButtonModel> CreateMoveButtons(bool isInteractable)
+        {
+            return new List<CombatRuntimeMoveButtonModel>
+            {
+                new CombatRuntimeMoveButtonModel(CombatRuntimeDirection.Up, "Up", isInteractable),
+                new CombatRuntimeMoveButtonModel(CombatRuntimeDirection.Down, "Down", isInteractable),
+                new CombatRuntimeMoveButtonModel(CombatRuntimeDirection.Left, "Left", isInteractable),
+                new CombatRuntimeMoveButtonModel(CombatRuntimeDirection.Right, "Right", isInteractable),
+            }.AsReadOnly();
+        }
+
+        private static IReadOnlyList<CombatRuntimeAbilityButtonModel> BuildAbilityButtons(CombatState state, CombatUnitState player, bool canIssuePlayerCommands)
+        {
+            var buttons = new List<CombatRuntimeAbilityButtonModel>();
+            var abilities = player.Definition.Abilities;
+            for (var index = 0; index < abilities.Count; index += 1)
+            {
+                var ability = abilities[index];
+                var request = CombatRuntimeAbilityRequestResolver.CreateRuntimeRequest(state, player, ability);
+                var resolvedTiles = CombatRuntimeAbilityRequestResolver.ResolveEffectTiles(state, player, ability);
+                var isInteractable = canIssuePlayerCommands && state.RemainingPlayerActions >= ability.ActionCost;
+                buttons.Add(new CombatRuntimeAbilityButtonModel(
+                    ability.Id,
+                    ability.Name,
+                    ability.Description,
+                    ability.ActionCost,
+                    resolvedTiles,
+                    player.Id,
+                    request.TargetUnitId,
+                    request.TargetPosition,
+                    isInteractable));
+            }
+
+            return buttons.AsReadOnly();
+        }
+
+        private static bool TryGetPlayerUnit(CombatState state, out CombatUnitState player)
+        {
+            foreach (var unitEntry in state.UnitsById)
+            {
+                if (unitEntry.Value.Side == CombatUnitSide.Player)
+                {
+                    player = unitEntry.Value;
+                    return true;
+                }
+            }
+
+            player = null!;
+            return false;
+        }
+    }
+}

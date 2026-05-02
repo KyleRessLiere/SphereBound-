@@ -21,7 +21,16 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             {
                 case CombatDebugCommandType.Move:
                 {
-                    var result = session.ResolveMove(request.ActingUnitId, request.MoveDestination);
+                    if (!request.MoveDestination.HasValue)
+                    {
+                        return new CombatDebugCommandResult(
+                            false,
+                            CombatDebugCommandFailureReason.UnsupportedSession,
+                            Array.Empty<ICombatEvent>(),
+                            CombatFailureReason.None);
+                    }
+
+                    var result = session.ResolveMove(request.ActingUnitId, request.MoveDestination.Value);
                     return new CombatDebugCommandResult(
                         result.Succeeded,
                         CombatDebugCommandFailureReason.None,
@@ -31,7 +40,39 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
 
                 case CombatDebugCommandType.Attack:
                 {
-                    var result = session.ResolveAttack(request.ActingUnitId, request.TargetUnitId);
+                    if (!request.TargetUnitId.HasValue)
+                    {
+                        return new CombatDebugCommandResult(
+                            false,
+                            CombatDebugCommandFailureReason.UnsupportedSession,
+                            Array.Empty<ICombatEvent>(),
+                            CombatFailureReason.None);
+                    }
+
+                    var result = session.ResolveAttack(request.ActingUnitId, request.TargetUnitId.Value);
+                    return new CombatDebugCommandResult(
+                        result.Succeeded,
+                        CombatDebugCommandFailureReason.None,
+                        result.Events,
+                        result.FailureReason);
+                }
+
+                case CombatDebugCommandType.Ability:
+                {
+                    if (string.IsNullOrWhiteSpace(request.AbilityId))
+                    {
+                        return new CombatDebugCommandResult(
+                            false,
+                            CombatDebugCommandFailureReason.UnsupportedSession,
+                            Array.Empty<ICombatEvent>(),
+                            CombatFailureReason.None);
+                    }
+
+                    var result = session.ResolveAbility(new AbilityUseRequest(
+                        request.ActingUnitId,
+                        request.AbilityId,
+                        request.TargetUnitId,
+                        request.TargetPosition));
                     return new CombatDebugCommandResult(
                         result.Succeeded,
                         CombatDebugCommandFailureReason.None,

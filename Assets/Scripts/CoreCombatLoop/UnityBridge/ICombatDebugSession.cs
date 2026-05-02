@@ -11,6 +11,8 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
 
         CombatActionResult ResolveAttack(int attackerUnitId, int targetUnitId);
 
+        CombatActionResult ResolveAbility(AbilityUseRequest request);
+
         IReadOnlyList<ICombatEvent> EndPlayerTurnAndRunEnemyTurn();
     }
 }

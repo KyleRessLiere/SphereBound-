@@ -10,6 +10,7 @@ namespace Spherebound.CoreCombatLoop.Core
         public AbilityDefinition(
             string id,
             string name,
+            string description,
             CombatActionType actionType,
             int actionCost,
             AbilityTargetingMode targetingMode,
@@ -26,6 +27,11 @@ namespace Spherebound.CoreCombatLoop.Core
             if (string.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentException("Ability name is required.", nameof(name));
+            }
+
+            if (description == null)
+            {
+                throw new ArgumentNullException(nameof(description));
             }
 
             if (actionCost <= 0)
@@ -45,6 +51,7 @@ namespace Spherebound.CoreCombatLoop.Core
 
             Id = id;
             Name = name;
+            Description = description;
             ActionType = actionType;
             ActionCost = actionCost;
             TargetingMode = targetingMode;
@@ -62,6 +69,8 @@ namespace Spherebound.CoreCombatLoop.Core
         public string Id { get; }
 
         public string Name { get; }
+
+        public string Description { get; }
 
         public CombatActionType ActionType { get; }
 

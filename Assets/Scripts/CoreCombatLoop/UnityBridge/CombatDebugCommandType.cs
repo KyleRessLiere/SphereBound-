@@ -6,5 +6,6 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         Attack = 1,
         EndTurn = 2,
         RestartCombat = 3,
+        Ability = 4,
     }
 }

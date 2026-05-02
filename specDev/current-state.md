@@ -27,6 +27,7 @@ It should be updated after each completed feature so the team can see the game's
 - The current basic attack is represented as a reusable ability definition.
 - Ability definitions currently support:
   - name and id
+  - description metadata
   - action cost
   - targeting mode
   - valid target rules
@@ -34,6 +35,7 @@ It should be updated after each completed feature so the team can see the game's
   - payload definitions for damage, healing representation, and forced movement
 - Ability use flows through the event system and still emits the downstream movement and damage events that existing tooling observes.
 - Ability-caused forced movement is supported through the same movement validation and movement event path used by normal movement.
+- The current player definition now exposes multiple simple test abilities for runtime UI validation, including basic attack, forward-line, and front-cross style examples.
 
 ## Architecture
 
@@ -51,6 +53,7 @@ It should be updated after each completed feature so the team can see the game's
   - ability and player-definition behavior
   - scenario runner behavior
   - Unity debug action behavior
+  - runtime UI-facing ability metadata and effect-tile exposure
   - Unity combat debug surface behavior
   - Unity combat debug file-output behavior
 
@@ -73,6 +76,24 @@ It should be updated after each completed feature so the team can see the game's
   - end turn
   - restart combat
 - Unity exposes visible Inspector buttons for these debug actions through a custom editor.
+
+## Runtime UI Surface
+
+- Unity now has a basic `uGUI` runtime combat UI controller layer.
+- The runtime UI can expose:
+  - `Up`, `Down`, `Left`, `Right`
+  - `End Turn`
+  - one large selected-ability button
+  - left/right ability cycling controls
+- The runtime ability surface is generated from the player's live definition-backed abilities rather than hardcoded UI names.
+- The selected ability button can show:
+  - ability name
+  - ability description
+  - action cost
+  - resolved effect-tile coordinates for the current selected ability and player context
+- The runtime UI keeps a presentation-only selected ability index and cycles across the player's available abilities with wrap behavior.
+- Runtime UI actions route through the existing Unity bridge and pure core gameplay path rather than a separate rules implementation.
+- Unity also has an Editor scaffold utility that can create the basic runtime combat UI hierarchy and wire the scene references automatically.
 
 ## Board And Attack Debug Output
 

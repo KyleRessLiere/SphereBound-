@@ -77,6 +77,13 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             return result;
         }
 
+        public CombatActionResult ResolveAbility(AbilityUseRequest request)
+        {
+            var result = combatEngine.ResolveAbility(State, request);
+            Publish(result.Events);
+            return result;
+        }
+
         public IReadOnlyList<ICombatEvent> EndPlayerTurnAndRunEnemyTurn()
         {
             return Publish(combatEngine.EndPlayerTurnAndRunEnemyTurn(State));

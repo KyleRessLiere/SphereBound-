@@ -11,6 +11,7 @@ overallSuccess &= RunCombatLoopSuite();
 overallSuccess &= RunAbilityDefinitionSuite();
 overallSuccess &= RunScenarioRunnerSuite();
 overallSuccess &= RunUnityDebugActionSuite();
+overallSuccess &= RunCombatRuntimeUiDataSuite();
 overallSuccess &= RunCombatDebugSurfaceSuite();
 overallSuccess &= RunCombatDebugFileOutputSuite();
 
@@ -128,6 +129,30 @@ static bool RunUnityDebugActionSuite()
     try
     {
         var checks = UnityDebugActionVerifier.RunAll();
+        foreach (var check in checks)
+        {
+            Console.WriteLine($"  [pass] {check}");
+        }
+
+        Console.WriteLine($"[suite-pass] {suiteName}");
+        return true;
+    }
+    catch (Exception exception)
+    {
+        Console.Error.WriteLine($"[suite-fail] {suiteName}");
+        Console.Error.WriteLine($"  {exception.GetType().Name}: {exception.Message}");
+        return false;
+    }
+}
+
+static bool RunCombatRuntimeUiDataSuite()
+{
+    const string suiteName = "CombatRuntimeUiDataVerifier";
+    Console.WriteLine($"[suite] {suiteName}");
+
+    try
+    {
+        var checks = CombatRuntimeUiDataVerifier.RunAll();
         foreach (var check in checks)
         {
             Console.WriteLine($"  [pass] {check}");

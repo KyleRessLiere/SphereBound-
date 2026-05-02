@@ -3,6 +3,8 @@ namespace Spherebound.CoreCombatLoop.Core
     public static class CombatScenarioFactory
     {
         public const string BasicAttackAbilityId = "basic-attack";
+        public const string ForwardLineAbilityId = "forward-line";
+        public const string FrontCrossAbilityId = "front-cross";
         public const int PlayerUnitId = 1;
         public const int EnemyUnitId = 2;
         public const int BoardWidth = 6;
@@ -14,6 +16,7 @@ namespace Spherebound.CoreCombatLoop.Core
         private static readonly AbilityDefinition BasicAttackAbility = new AbilityDefinition(
             BasicAttackAbilityId,
             "Basic Attack",
+            "adjacent enemy",
             CombatActionType.Attack,
             actionCost: 1,
             AbilityTargetingMode.AdjacentUnit,
@@ -28,6 +31,46 @@ namespace Spherebound.CoreCombatLoop.Core
             {
                 AbilityEffectDefinition.Damage(1),
             });
+        private static readonly AbilityDefinition ForwardLineAbility = new AbilityDefinition(
+            ForwardLineAbilityId,
+            "Forward Line",
+            "two tiles forward",
+            CombatActionType.Attack,
+            actionCost: 1,
+            AbilityTargetingMode.Line,
+            AbilityTargetRule.Enemy | AbilityTargetRule.OccupiedTile,
+            new AbilityTilePattern(
+                AbilityTilePatternAnchor.DirectionFromActorToTarget,
+                new[]
+                {
+                    new GridOffset(0, 1),
+                    new GridOffset(0, 2),
+                }),
+            new[]
+            {
+                AbilityEffectDefinition.Damage(1),
+            });
+        private static readonly AbilityDefinition FrontCrossAbility = new AbilityDefinition(
+            FrontCrossAbilityId,
+            "Front Cross",
+            "cross in front of player",
+            CombatActionType.Attack,
+            actionCost: 1,
+            AbilityTargetingMode.DirectionalShape,
+            AbilityTargetRule.Enemy | AbilityTargetRule.OccupiedTile,
+            new AbilityTilePattern(
+                AbilityTilePatternAnchor.DirectionFromActorToTarget,
+                new[]
+                {
+                    new GridOffset(0, 1),
+                    new GridOffset(-1, 1),
+                    new GridOffset(1, 1),
+                    new GridOffset(0, 2),
+                }),
+            new[]
+            {
+                AbilityEffectDefinition.Damage(1),
+            });
         private static readonly CombatUnitDefinition PlayerDefinitionValue = new CombatUnitDefinition(
             "player-warrior",
             "Player Warrior",
@@ -37,6 +80,8 @@ namespace Spherebound.CoreCombatLoop.Core
             new[]
             {
                 BasicAttackAbility,
+                ForwardLineAbility,
+                FrontCrossAbility,
             },
             BasicAttackAbilityId);
         private static readonly CombatUnitDefinition EnemyDefinitionValue = new CombatUnitDefinition(

@@ -31,6 +31,8 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         private CombatDebugFileOutputWriter? fileOutputWriter;
         private string? fileOutputSessionId;
 
+        public event Action? RuntimeStateChanged;
+
         public BridgedCombatSessionSnapshot? CurrentSnapshot { get; private set; }
 
         public IReadOnlyList<UnityBridgedUnitDebugState> DebugUnits => debugUnits;
@@ -82,31 +84,23 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         [ContextMenu("Debug Move")]
         public void ExecuteDebugMove()
         {
-            ExecuteDebugCommand(new CombatDebugCommandRequest(
-                CombatDebugCommandType.Move,
+            ExecuteDebugCommand(CombatDebugCommandRequest.Move(
                 debugActingUnitId,
-                new GridPosition(debugMoveDestination.x, debugMoveDestination.y),
-                debugAttackTargetUnitId));
+                new GridPosition(debugMoveDestination.x, debugMoveDestination.y)));
         }
 
         [ContextMenu("Debug Attack")]
         public void ExecuteDebugAttack()
         {
-            ExecuteDebugCommand(new CombatDebugCommandRequest(
-                CombatDebugCommandType.Attack,
+            ExecuteDebugCommand(CombatDebugCommandRequest.Attack(
                 debugActingUnitId,
-                new GridPosition(debugMoveDestination.x, debugMoveDestination.y),
                 debugAttackTargetUnitId));
         }
 
         [ContextMenu("Debug End Turn")]
         public void ExecuteDebugEndTurn()
         {
-            ExecuteDebugCommand(new CombatDebugCommandRequest(
-                CombatDebugCommandType.EndTurn,
-                debugActingUnitId,
-                new GridPosition(debugMoveDestination.x, debugMoveDestination.y),
-                debugAttackTargetUnitId));
+            ExecuteDebugCommand(CombatDebugCommandRequest.EndTurn(debugActingUnitId));
         }
 
         [ContextMenu("Debug Restart Combat")]
@@ -152,6 +146,62 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             debugSurfacePresenter.Reset();
             debugUnits.Clear();
             ClearPlaceholderObjects();
+            RuntimeStateChanged?.Invoke();
+        }
+
+        public CombatRuntimeControlSurfaceModel BuildRuntimeControlSurfaceModel()
+        {
+            if (debugSession is ObservableCombatSession observableSession)
+            {
+                return CombatRuntimeControlSurfaceBuilder.Build(observableSession.State);
+            }
+
+            return new CombatRuntimeControlSurfaceModel(
+                new[]
+                {
+                    new CombatRuntimeMoveButtonModel(CombatRuntimeDirection.Up, "Up", false),
+                    new CombatRuntimeMoveButtonModel(CombatRuntimeDirection.Down, "Down", false),
+                    new CombatRuntimeMoveButtonModel(CombatRuntimeDirection.Left, "Left", false),
+                    new CombatRuntimeMoveButtonModel(CombatRuntimeDirection.Right, "Right", false),
+                },
+                canEndTurn: false,
+                abilityButtons: Array.Empty<CombatRuntimeAbilityButtonModel>());
+        }
+
+        public CombatDebugCommandResult ExecuteRuntimeMove(CombatRuntimeDirection direction)
+        {
+            if (!TryGetPlayerGridPosition(out var playerPosition))
+            {
+                return new CombatDebugCommandResult(
+                    false,
+                    CombatDebugCommandFailureReason.SessionUnavailable,
+                    Array.Empty<ICombatEvent>(),
+                    CombatFailureReason.None);
+            }
+
+            var destination = direction switch
+            {
+                CombatRuntimeDirection.Up => new GridPosition(playerPosition.X, playerPosition.Y + 1),
+                CombatRuntimeDirection.Down => new GridPosition(playerPosition.X, playerPosition.Y - 1),
+                CombatRuntimeDirection.Left => new GridPosition(playerPosition.X - 1, playerPosition.Y),
+                _ => new GridPosition(playerPosition.X + 1, playerPosition.Y),
+            };
+
+            return ExecuteDebugCommand(CombatDebugCommandRequest.Move(CombatScenarioFactory.PlayerUnitId, destination));
+        }
+
+        public CombatDebugCommandResult ExecuteRuntimeAbility(CombatRuntimeAbilityButtonModel abilityButton)
+        {
+            return ExecuteDebugCommand(CombatDebugCommandRequest.Ability(
+                abilityButton.ActingUnitId,
+                abilityButton.AbilityId,
+                abilityButton.TargetUnitId,
+                abilityButton.TargetPosition));
+        }
+
+        public CombatDebugCommandResult ExecuteRuntimeEndTurn()
+        {
+            return ExecuteDebugCommand(CombatDebugCommandRequest.EndTurn(CombatScenarioFactory.PlayerUnitId));
         }
 
         private void HandleCoreEvent(ICombatEvent combatEvent)
@@ -162,7 +212,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             EmitDerivedDebugOutput(combatEvent, snapshotBefore);
         }
 
-        private void ExecuteDebugCommand(CombatDebugCommandRequest request)
+        private CombatDebugCommandResult ExecuteDebugCommand(CombatDebugCommandRequest request)
         {
             var result = CombatDebugCommandExecutor.Execute(debugSession, request);
             if (result.CommandFailureReason != CombatDebugCommandFailureReason.None)
@@ -171,6 +221,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             }
 
             RefreshSnapshot();
+            return result;
         }
 
         private void RefreshSnapshot()
@@ -187,6 +238,8 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             {
                 SyncPlaceholderObjects(CurrentSnapshot);
             }
+
+            RuntimeStateChanged?.Invoke();
         }
 
         private void EmitDerivedDebugOutput(ICombatEvent combatEvent, BridgedCombatSessionSnapshot? snapshotBefore)
@@ -354,6 +407,24 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         {
             subscription?.Dispose();
             subscription = null;
+        }
+
+        private bool TryGetPlayerGridPosition(out GridPosition playerPosition)
+        {
+            if (CurrentSnapshot != null)
+            {
+                foreach (var unit in CurrentSnapshot.Units)
+                {
+                    if (unit.Side == CombatUnitSide.Player && unit.LifeState == UnitLifeState.Alive)
+                    {
+                        playerPosition = unit.Position;
+                        return true;
+                    }
+                }
+            }
+
+            playerPosition = default;
+            return false;
         }
     }
 }
