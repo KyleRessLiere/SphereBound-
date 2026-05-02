@@ -1,0 +1,31 @@
+﻿suite: CombatLoopVerifier
+check: VerifyEnemyAttack
+result: pass
+
+[initial-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][E][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[events]
+BehaviorIntentSelected unit=2 behavior=enemy-default-chase intent=UseAbility ability=basic-attack targetUnit=1 targetPosition=none
+AbilityRequested actor=2 ability=basic-attack targetUnit=1 targetPosition=none
+ActionStarted unit=2 action=Ability
+AttackRequested attacker=2 target=1
+DamageRequested source=2 target=1 amount=1
+UnitDamaged unit=1 previous=5 current=4 amount=1
+ActionEnded unit=2 action=Attack
+
+[final-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][E][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[notes]
+failureReason=None

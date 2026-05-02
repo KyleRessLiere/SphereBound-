@@ -1,0 +1,6 @@
+﻿suite: VerifierLogOutputVerifier
+check: VerifierLogOutputVerifier.VerifyPathResolverProducesStablePaths
+result: pass
+
+[summary]
+Verifier log paths are deterministic for a suite/check pair.

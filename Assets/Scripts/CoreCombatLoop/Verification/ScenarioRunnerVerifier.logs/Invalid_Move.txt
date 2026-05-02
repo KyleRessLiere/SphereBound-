@@ -1,0 +1,27 @@
+﻿suite: ScenarioRunnerVerifier
+check: Invalid Move
+result: pass
+
+[initial-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][E][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[events]
+TurnStarted side=Player
+MoveRequested unit=1 destination=(1, 2)
+ActionStarted unit=1 action=Move
+ActionFailed unit=1 action=Move reason=DestinationOccupied
+MoveBlocked unit=1 destination=(1, 2) reason=DestinationOccupied
+ActionEnded unit=1 action=Move
+
+[final-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][E][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]

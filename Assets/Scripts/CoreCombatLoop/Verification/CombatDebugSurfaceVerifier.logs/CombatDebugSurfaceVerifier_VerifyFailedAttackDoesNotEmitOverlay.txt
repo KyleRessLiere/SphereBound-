@@ -1,0 +1,25 @@
+﻿suite: CombatDebugSurfaceVerifier
+check: VerifyFailedAttackDoesNotEmitOverlay
+result: pass
+
+[initial-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][E][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[events]
+AbilityRequested actor=1 ability=basic-attack targetUnit=2 targetPosition=none
+ActionStarted unit=1 action=Attack
+ActionFailed unit=1 action=Attack reason=TargetNotAdjacent
+ActionEnded unit=1 action=Attack
+
+[final-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][E][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]

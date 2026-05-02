@@ -1,0 +1,28 @@
+﻿suite: AbilityDefinitionVerifier
+check: VerifyAbilityCostHandling
+result: fail
+
+[initial-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][E][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[events]
+AbilityRequested actor=1 ability=heavy-slash targetUnit=2 targetPosition=none
+ActionStarted unit=1 action=Ability
+ActionFailed unit=1 action=Attack reason=NoActionsRemaining
+ActionEnded unit=1 action=Attack
+
+[final-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][E][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[notes]
+failureReason=NoActionsRemaining

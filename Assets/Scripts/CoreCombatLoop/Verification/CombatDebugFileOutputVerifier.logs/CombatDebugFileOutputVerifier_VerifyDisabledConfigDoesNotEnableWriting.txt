@@ -1,0 +1,6 @@
+﻿suite: CombatDebugFileOutputVerifier
+check: CombatDebugFileOutputVerifier.VerifyDisabledConfigDoesNotEnableWriting
+result: pass
+
+[summary]
+Disabled config remains disabled.

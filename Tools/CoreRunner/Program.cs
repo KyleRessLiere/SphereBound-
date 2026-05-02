@@ -1,4 +1,5 @@
 using Spherebound.CoreCombatLoop.Verification;
+using System.IO;
 
 if (args.Length > 0)
 {
@@ -7,14 +8,25 @@ if (args.Length > 0)
 }
 
 var overallSuccess = true;
+var projectRoot = Directory.GetCurrentDirectory();
 overallSuccess &= RunCombatLoopSuite();
+WriteVerifierLogs(projectRoot, VerifierFileReportFactory.CreateCombatLoopSuiteReport());
 overallSuccess &= RunCombatBehaviorSuite();
+WriteVerifierLogs(projectRoot, VerifierFileReportFactory.CreateCombatBehaviorSuiteReport());
 overallSuccess &= RunAbilityDefinitionSuite();
+WriteVerifierLogs(projectRoot, VerifierFileReportFactory.CreateAbilityDefinitionSuiteReport());
 overallSuccess &= RunScenarioRunnerSuite();
+WriteVerifierLogs(projectRoot, VerifierFileReportFactory.CreateScenarioRunnerSuiteReport());
 overallSuccess &= RunUnityDebugActionSuite();
+WriteVerifierLogs(projectRoot, VerifierFileReportFactory.CreateUnityDebugActionSuiteReport());
 overallSuccess &= RunCombatRuntimeUiDataSuite();
+WriteVerifierLogs(projectRoot, VerifierFileReportFactory.CreateCombatRuntimeUiDataSuiteReport());
 overallSuccess &= RunCombatDebugSurfaceSuite();
+WriteVerifierLogs(projectRoot, VerifierFileReportFactory.CreateCombatDebugSurfaceSuiteReport());
 overallSuccess &= RunCombatDebugFileOutputSuite();
+WriteVerifierLogs(projectRoot, VerifierFileReportFactory.CreateCombatDebugFileOutputSuiteReport());
+overallSuccess &= RunVerifierLogOutputSuite();
+WriteVerifierLogs(projectRoot, VerifierFileReportFactory.CreateVerifierLogOutputSuiteReport());
 
 if (overallSuccess)
 {
@@ -240,4 +252,33 @@ static bool RunCombatDebugFileOutputSuite()
         Console.Error.WriteLine($"  {exception.GetType().Name}: {exception.Message}");
         return false;
     }
+}
+
+static bool RunVerifierLogOutputSuite()
+{
+    const string suiteName = "VerifierLogOutputVerifier";
+    Console.WriteLine($"[suite] {suiteName}");
+
+    try
+    {
+        var checks = VerifierLogOutputVerifier.RunAll();
+        foreach (var check in checks)
+        {
+            Console.WriteLine($"  [pass] {check}");
+        }
+
+        Console.WriteLine($"[suite-pass] {suiteName}");
+        return true;
+    }
+    catch (Exception exception)
+    {
+        Console.Error.WriteLine($"[suite-fail] {suiteName}");
+        Console.Error.WriteLine($"  {exception.GetType().Name}: {exception.Message}");
+        return false;
+    }
+}
+
+static void WriteVerifierLogs(string projectRoot, VerifierSuiteFileReport suiteReport)
+{
+    VerifierLogWriter.WriteSuite(projectRoot, suiteReport);
 }

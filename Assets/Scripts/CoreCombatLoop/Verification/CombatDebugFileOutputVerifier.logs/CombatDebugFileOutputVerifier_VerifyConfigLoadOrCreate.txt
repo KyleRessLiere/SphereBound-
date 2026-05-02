@@ -1,0 +1,6 @@
+﻿suite: CombatDebugFileOutputVerifier
+check: CombatDebugFileOutputVerifier.VerifyConfigLoadOrCreate
+result: pass
+
+[summary]
+Debug file-output config is created and loaded with expected defaults.

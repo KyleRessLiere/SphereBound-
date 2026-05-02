@@ -1,0 +1,29 @@
+﻿suite: CombatLoopVerifier
+check: VerifyOutOfTurnFailure
+result: fail
+
+[initial-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][E][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[events]
+MoveRequested unit=1 destination=(1, 2)
+ActionStarted unit=1 action=Move
+ActionFailed unit=1 action=Move reason=OutOfTurn
+MoveBlocked unit=1 destination=(1, 2) reason=OutOfTurn
+ActionEnded unit=1 action=Move
+
+[final-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][E][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[notes]
+failureReason=OutOfTurn

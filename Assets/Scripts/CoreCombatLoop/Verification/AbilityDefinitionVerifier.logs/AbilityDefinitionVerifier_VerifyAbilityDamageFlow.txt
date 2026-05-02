@@ -1,0 +1,31 @@
+﻿suite: AbilityDefinitionVerifier
+check: VerifyAbilityDamageFlow
+result: pass
+
+[initial-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][E][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[events]
+AbilityRequested actor=1 ability=basic-attack targetUnit=2 targetPosition=none
+ActionStarted unit=1 action=Ability
+AttackRequested attacker=1 target=2
+DamageRequested source=1 target=2 amount=1
+UnitDamaged unit=2 previous=3 current=2 amount=1
+ActionSpent unit=1 remainingActions=1
+ActionEnded unit=1 action=Attack
+
+[final-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][E][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[notes]
+failureReason=None

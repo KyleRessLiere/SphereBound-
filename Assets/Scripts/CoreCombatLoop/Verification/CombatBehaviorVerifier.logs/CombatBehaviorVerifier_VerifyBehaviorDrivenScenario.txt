@@ -1,0 +1,36 @@
+﻿suite: CombatBehaviorVerifier
+check: VerifyBehaviorDrivenScenario
+result: pass
+
+[initial-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][E][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[events]
+TurnStarted side=Player
+BehaviorIntentSelected unit=1 behavior=player-scripted-combo intent=UseAbility ability=basic-attack targetUnit=2 targetPosition=none
+AbilityRequested actor=1 ability=basic-attack targetUnit=2 targetPosition=none
+ActionStarted unit=1 action=Ability
+AttackRequested attacker=1 target=2
+DamageRequested source=1 target=2 amount=1
+UnitDamaged unit=2 previous=3 current=2 amount=1
+ActionSpent unit=1 remainingActions=1
+ActionEnded unit=1 action=Attack
+BehaviorIntentSelected unit=1 behavior=player-scripted-combo intent=EndTurn ability=none targetUnit=none targetPosition=none
+TurnEnded side=Player
+TurnStarted side=Enemy
+BehaviorIntentSelected unit=2 behavior=enemy-pass intent=EndTurn ability=none targetUnit=none targetPosition=none
+TurnEnded side=Enemy
+TurnStarted side=Player
+
+[final-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][E][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]

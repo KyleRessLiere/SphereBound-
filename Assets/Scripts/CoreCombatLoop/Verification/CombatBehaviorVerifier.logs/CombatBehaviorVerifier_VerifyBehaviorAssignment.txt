@@ -1,0 +1,10 @@
+﻿suite: CombatBehaviorVerifier
+check: VerifyBehaviorAssignment
+result: pass
+
+[summary]
+Initial state assigns behaviors to both player and enemy.
+
+[details]
+playerBehavior=player-manual
+enemyBehavior=enemy-move-toward-player

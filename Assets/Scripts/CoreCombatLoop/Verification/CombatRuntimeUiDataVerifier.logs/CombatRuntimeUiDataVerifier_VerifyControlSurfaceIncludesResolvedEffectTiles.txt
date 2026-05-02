@@ -1,0 +1,6 @@
+﻿suite: CombatRuntimeUiDataVerifier
+check: CombatRuntimeUiDataVerifier.VerifyControlSurfaceIncludesResolvedEffectTiles
+result: pass
+
+[summary]
+Runtime control surface includes resolved effect-tile coordinates.

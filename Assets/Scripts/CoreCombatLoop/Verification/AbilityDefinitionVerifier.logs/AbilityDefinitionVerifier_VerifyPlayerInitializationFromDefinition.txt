@@ -1,0 +1,11 @@
+﻿suite: AbilityDefinitionVerifier
+check: VerifyPlayerInitializationFromDefinition
+result: pass
+
+[summary]
+Player instance is created from the reusable player definition.
+
+[details]
+definitionId=player-warrior
+abilities=3
+movementRange=1

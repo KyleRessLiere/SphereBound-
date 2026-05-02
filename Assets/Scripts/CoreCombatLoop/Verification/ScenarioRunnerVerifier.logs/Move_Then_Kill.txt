@@ -1,0 +1,37 @@
+﻿suite: ScenarioRunnerVerifier
+check: Move Then Kill
+result: pass
+
+[initial-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][E][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[events]
+TurnStarted side=Player
+MoveRequested unit=1 destination=(1, 2)
+ActionStarted unit=1 action=Move
+UnitMoved unit=1 from=(1, 1) to=(1, 2)
+ActionSpent unit=1 remainingActions=1
+ActionEnded unit=1 action=Move
+AbilityRequested actor=1 ability=basic-attack targetUnit=2 targetPosition=none
+ActionStarted unit=1 action=Attack
+AttackRequested attacker=1 target=2
+DamageRequested source=1 target=2 amount=1
+UnitDamaged unit=2 previous=1 current=0 amount=1
+UnitDying unit=2
+UnitDeath unit=2
+UnitRemoved unit=2 position=(2, 2)
+ActionSpent unit=1 remainingActions=0
+ActionEnded unit=1 action=Attack
+
+[final-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]

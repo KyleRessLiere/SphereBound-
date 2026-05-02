@@ -1,0 +1,11 @@
+﻿suite: AbilityDefinitionVerifier
+check: VerifyDeterministicAffectedTileResolution
+result: pass
+
+[summary]
+Affected-tile resolution stays deterministic for invalid and valid adjacency cases.
+
+[details]
+initialFailure=TargetNotAdjacent
+adjacentFailure=None
+adjacentTileCount=1

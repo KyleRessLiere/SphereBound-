@@ -1,0 +1,6 @@
+﻿suite: CombatRuntimeUiDataVerifier
+check: CombatRuntimeUiDataVerifier.VerifyControlSurfaceIncludesAbilityMetadata
+result: pass
+
+[summary]
+Runtime control surface includes definition-backed ability metadata.

@@ -1,0 +1,6 @@
+﻿suite: UnityDebugActionVerifier
+check: VerifyMissingSessionFailure
+result: pass
+
+[summary]
+Missing session fails at the debug-command layer without gameplay events.

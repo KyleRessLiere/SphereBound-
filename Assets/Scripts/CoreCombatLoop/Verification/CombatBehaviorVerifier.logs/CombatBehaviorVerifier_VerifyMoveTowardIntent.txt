@@ -1,0 +1,10 @@
+﻿suite: CombatBehaviorVerifier
+check: VerifyMoveTowardIntent
+result: pass
+
+[summary]
+MoveTowardTargetBehavior chooses a deterministic move intent.
+
+[details]
+intent=Move
+targetPosition=(4, 3)

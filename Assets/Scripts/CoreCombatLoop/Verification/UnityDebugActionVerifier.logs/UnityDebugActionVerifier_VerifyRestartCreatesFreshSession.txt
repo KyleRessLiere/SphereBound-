@@ -1,0 +1,6 @@
+﻿suite: UnityDebugActionVerifier
+check: VerifyRestartCreatesFreshSession
+result: pass
+
+[summary]
+Restart creates a fresh session with initial state and a new session id.

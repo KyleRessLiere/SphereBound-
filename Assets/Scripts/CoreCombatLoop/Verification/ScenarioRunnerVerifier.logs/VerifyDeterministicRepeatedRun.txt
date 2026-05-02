@@ -1,0 +1,9 @@
+﻿suite: ScenarioRunnerVerifier
+check: VerifyDeterministicRepeatedRun
+result: pass
+
+[summary]
+Scenario runner invariants passed.
+
+[details]
+Repeated-run determinism and scenario independence were preserved.

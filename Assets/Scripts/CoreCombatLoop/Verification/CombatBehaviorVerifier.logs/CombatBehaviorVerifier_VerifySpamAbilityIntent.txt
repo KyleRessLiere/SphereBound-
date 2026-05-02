@@ -1,0 +1,10 @@
+﻿suite: CombatBehaviorVerifier
+check: VerifySpamAbilityIntent
+result: pass
+
+[summary]
+SpamAbilityBehavior selects its configured ability deterministically.
+
+[details]
+intent=UseAbility
+abilityId=forward-line

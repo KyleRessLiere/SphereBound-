@@ -1,0 +1,6 @@
+﻿suite: CombatDebugFileOutputVerifier
+check: CombatDebugFileOutputVerifier.VerifyWriterCreatesDatedTimestampedFile
+result: pass
+
+[summary]
+Existing dated/timestamped debug file writer creates expected output layout.

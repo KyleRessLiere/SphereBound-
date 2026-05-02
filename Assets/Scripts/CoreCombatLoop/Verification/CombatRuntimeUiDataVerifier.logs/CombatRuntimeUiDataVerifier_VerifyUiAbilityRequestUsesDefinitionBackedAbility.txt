@@ -1,0 +1,6 @@
+﻿suite: CombatRuntimeUiDataVerifier
+check: CombatRuntimeUiDataVerifier.VerifyUiAbilityRequestUsesDefinitionBackedAbility
+result: pass
+
+[summary]
+Runtime ability requests preserve definition-backed ability ids.

@@ -1,0 +1,6 @@
+﻿suite: CombatDebugSurfaceVerifier
+check: CombatDebugSurfaceVerifier.VerifyBoardFormatting
+result: pass
+
+[summary]
+Board formatter emits bracketed board rows with player/enemy markers.

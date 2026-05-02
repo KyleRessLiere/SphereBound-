@@ -1,0 +1,29 @@
+﻿suite: CombatLoopVerifier
+check: VerifyEnemyMovement
+result: pass
+
+[initial-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][E][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[events]
+BehaviorIntentSelected unit=2 behavior=enemy-default-chase intent=Move ability=none targetUnit=none targetPosition=(3, 2)
+MoveRequested unit=2 destination=(3, 2)
+ActionStarted unit=2 action=Move
+UnitMoved unit=2 from=(3, 3) to=(3, 2)
+ActionEnded unit=2 action=Move
+
+[final-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][E][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[notes]
+failureReason=None

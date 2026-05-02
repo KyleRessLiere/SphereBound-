@@ -1,0 +1,11 @@
+﻿suite: AbilityDefinitionVerifier
+check: VerifyBasicAttackAbilityDefinition
+result: pass
+
+[summary]
+Basic attack ability exposes expected metadata and damage payload.
+
+[details]
+name=Basic Attack
+description=adjacent enemy
+actionCost=1

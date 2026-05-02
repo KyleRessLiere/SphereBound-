@@ -1,0 +1,11 @@
+﻿suite: CombatBehaviorVerifier
+check: VerifyScriptedBehaviorSequence
+result: pass
+
+[summary]
+Scripted behavior preserves configured order and deterministic fallback.
+
+[details]
+first=Move
+second=EndTurn
+third=EndTurn

@@ -1,0 +1,39 @@
+﻿suite: CombatDebugSurfaceVerifier
+check: VerifyActionCountUpdates
+result: pass
+
+[initial-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][E][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[events]
+TurnStarted side=Player
+MoveRequested unit=1 destination=(1, 2)
+ActionStarted unit=1 action=Move
+UnitMoved unit=1 from=(1, 1) to=(1, 2)
+ActionSpent unit=1 remainingActions=1
+ActionEnded unit=1 action=Move
+TurnEnded side=Player
+TurnStarted side=Enemy
+BehaviorIntentSelected unit=2 behavior=enemy-move-toward-player intent=Move ability=none targetUnit=none targetPosition=(4, 3)
+MoveRequested unit=2 destination=(4, 3)
+ActionStarted unit=2 action=Move
+UnitMoved unit=2 from=(4, 4) to=(4, 3)
+ActionEnded unit=2 action=Move
+TurnEnded side=Enemy
+TurnStarted side=Player
+
+[final-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][E][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[notes]
+remainingPlayerActions=2

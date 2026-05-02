@@ -1,0 +1,6 @@
+﻿suite: CombatRuntimeUiDataVerifier
+check: CombatRuntimeUiDataVerifier.VerifyPlayerDefinitionExposesMultipleUiAbilities
+result: pass
+
+[summary]
+Player definition exposes multiple runtime UI abilities.

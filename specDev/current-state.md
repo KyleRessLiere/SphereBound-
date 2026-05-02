@@ -80,6 +80,7 @@ It should be updated after each completed feature so the team can see the game's
   - runtime UI-facing ability metadata and effect-tile exposure
   - Unity combat debug surface behavior
   - Unity combat debug file-output behavior
+  - verifier log output behavior
 
 ## Scenario And Logging Tooling
 
@@ -88,6 +89,10 @@ It should be updated after each completed feature so the team can see the game's
 - The runner prints ordered scenario logs and verification summaries.
 - Scenario steps now support behavior-driven automated turn cycles.
 - Scenario logs now include behavior-decision events alongside the normal gameplay event stream.
+- The runner now writes stable per-check verifier log files into verifier-specific sibling `.logs` directories beside the verifier code in `Assets/Scripts/CoreCombatLoop/Verification/`.
+- Combat-flow verifiers emit board/event-focused log files.
+- Small component verifiers emit compact assertion-focused log files.
+- Re-running the same verifier check overwrites that check's latest output file.
 
 ## Unity Debugging Surface
 

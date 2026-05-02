@@ -1,0 +1,6 @@
+﻿suite: VerifierLogOutputVerifier
+check: VerifierLogOutputVerifier.VerifyAssertionBuilderIncludesSummary
+result: pass
+
+[summary]
+Assertion log builder includes summary and optional detail sections.

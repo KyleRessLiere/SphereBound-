@@ -1,0 +1,34 @@
+﻿suite: CombatLoopVerifier
+check: VerifyDeathAndRemoval
+result: pass
+
+[initial-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][E][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[events]
+AbilityRequested actor=1 ability=basic-attack targetUnit=2 targetPosition=none
+ActionStarted unit=1 action=Attack
+AttackRequested attacker=1 target=2
+DamageRequested source=1 target=2 amount=1
+UnitDamaged unit=2 previous=1 current=0 amount=1
+UnitDying unit=2
+UnitDeath unit=2
+UnitRemoved unit=2 position=(1, 2)
+ActionSpent unit=1 remainingActions=1
+ActionEnded unit=1 action=Attack
+
+[final-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[notes]
+failureReason=None

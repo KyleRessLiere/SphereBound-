@@ -1,0 +1,6 @@
+﻿suite: VerifierLogOutputVerifier
+check: VerifierLogOutputVerifier.VerifyWriterOverwritesLatestCheckFile
+result: pass
+
+[summary]
+Verifier log writer overwrites the latest check file deterministically.

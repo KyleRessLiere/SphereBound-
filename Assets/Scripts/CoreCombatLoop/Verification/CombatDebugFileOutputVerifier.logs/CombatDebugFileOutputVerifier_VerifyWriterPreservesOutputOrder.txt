@@ -1,0 +1,6 @@
+﻿suite: CombatDebugFileOutputVerifier
+check: CombatDebugFileOutputVerifier.VerifyWriterPreservesOutputOrder
+result: pass
+
+[summary]
+Existing debug file writer preserves append order.

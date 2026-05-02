@@ -1,0 +1,29 @@
+﻿suite: CombatLoopVerifier
+check: VerifyPlayerMovement
+result: pass
+
+[initial-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][E][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[events]
+MoveRequested unit=1 destination=(1, 2)
+ActionStarted unit=1 action=Move
+UnitMoved unit=1 from=(1, 1) to=(1, 2)
+ActionSpent unit=1 remainingActions=1
+ActionEnded unit=1 action=Move
+
+[final-board]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][E][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][P][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+[notes]
+failureReason=None

@@ -1,0 +1,6 @@
+﻿suite: VerifierLogOutputVerifier
+check: VerifierLogOutputVerifier.VerifyCombatFlowBuilderIncludesBoardsAndEvents
+result: pass
+
+[summary]
+Combat-flow log builder includes board and event sections.

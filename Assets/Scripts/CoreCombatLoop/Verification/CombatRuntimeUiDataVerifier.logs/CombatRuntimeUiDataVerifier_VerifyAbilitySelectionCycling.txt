@@ -1,0 +1,6 @@
+﻿suite: CombatRuntimeUiDataVerifier
+check: CombatRuntimeUiDataVerifier.VerifyAbilitySelectionCycling
+result: pass
+
+[summary]
+Runtime ability selection cycles deterministically.
