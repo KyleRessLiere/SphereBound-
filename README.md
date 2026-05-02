@@ -16,9 +16,11 @@ From the repo root, run:
 dotnet run --project Tools/CoreRunner/CoreRunner.csproj
 ```
 
-This executes both verifier suites:
+This executes the current verifier suites:
 - `CombatLoopVerifier`
 - `ScenarioRunnerVerifier`
+- `UnityDebugActionVerifier`
+- `CombatDebugSurfaceVerifier`
 
 When the scenario suite runs, the runner also prints full per-scenario event logs and a scenario verification summary for each scenario.
 
@@ -77,6 +79,20 @@ Expected output looks like:
   [pass] VerifyDeterministicRepeatedRun
   [pass] VerifyMultiScenarioIndependence
 [suite-pass] ScenarioRunnerVerifier
+[suite] UnityDebugActionVerifier
+  [pass] VerifyMoveCommand
+  [pass] VerifyAttackCommand
+  [pass] VerifyEndTurnCommand
+  [pass] VerifyRestartCreatesFreshSession
+  [pass] VerifyMissingSessionFailure
+[suite-pass] UnityDebugActionVerifier
+[suite] CombatDebugSurfaceVerifier
+  [pass] VerifyBoardFormatting
+  [pass] VerifyMovementBoardOutput
+  [pass] VerifyAttackOverlayOutput
+  [pass] VerifyFailedAttackDoesNotEmitOverlay
+  [pass] VerifyActionCountUpdates
+[suite-pass] CombatDebugSurfaceVerifier
 [overall-pass] All verifier suites passed.
 ```
 
@@ -97,7 +113,11 @@ This verifies that the scripts compile as part of the Unity project, but it does
 - Deterministic scenario definitions, runner logic, logging, and verification contracts.
 
 `Assets/Scripts/CoreCombatLoop/Verification`
-- Verifier suites for the core combat loop and the scenario runner.
+- Verifier suites for the core combat loop, scenario runner, Unity debug-command surface, and combat debug-surface formatting/logging.
+
+`Assets/Scripts/CoreCombatLoop/UnityBridge`
+- Unity-facing listener bridge plus debug action controls for move, attack, end turn, and restart.
+- Board snapshot and attack overlay formatting for Unity-side combat debugging.
 
 ## Notes
 
@@ -105,3 +125,5 @@ This verifies that the scripts compile as part of the Unity project, but it does
 - The primary command-line entry point is `dotnet run --project Tools/CoreRunner/CoreRunner.csproj`.
 - The runner project reuses the existing core/scenario/verifier source files directly from `Assets/Scripts/CoreCombatLoop`.
 - The runner now prints full per-scenario logs during the scenario suite.
+- The Unity bridge exposes visible Inspector buttons through a custom editor on `UnityCombatListenerBridge` for in-editor manual checks.
+- Movement logs now print full board snapshots, and successful attacks print single-symbol attack overlays using `X` and `O`.

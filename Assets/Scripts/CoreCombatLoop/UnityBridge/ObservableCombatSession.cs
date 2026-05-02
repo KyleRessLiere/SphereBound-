@@ -5,7 +5,7 @@ using Spherebound.CoreCombatLoop.Core;
 
 namespace Spherebound.CoreCombatLoop.UnityBridge
 {
-    public sealed class ObservableCombatSession : ICombatSessionObserver
+    public sealed class ObservableCombatSession : ICombatDebugSession
     {
         private readonly CombatEngine combatEngine;
         private readonly List<Action<ICombatEvent>> subscribers;
@@ -55,7 +55,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
                     unit.LifeState))
                 .ToList();
 
-            return new BridgedCombatSessionSnapshot(SessionId, units, true);
+            return new BridgedCombatSessionSnapshot(SessionId, State.Board, units, true);
         }
 
         public IReadOnlyList<ICombatEvent> StartCombat()

@@ -11,16 +11,30 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         [SerializeField] private bool initializeDefaultSessionOnEnable = true;
         [SerializeField] private bool autoStartCombatOnEnable = true;
         [SerializeField] private bool createPlaceholderObjects;
+        [SerializeField] private int debugActingUnitId = CombatScenarioFactory.PlayerUnitId;
+        [SerializeField] private Vector2Int debugMoveDestination = new Vector2Int(1, 2);
+        [SerializeField] private int debugAttackTargetUnitId = CombatScenarioFactory.EnemyUnitId;
+        [SerializeField] private string lastActionCountLog = string.Empty;
+        [SerializeField] private string lastBoardOutput = string.Empty;
+        [SerializeField] private string lastAttackOverlayOutput = string.Empty;
         [SerializeField] private List<UnityBridgedUnitDebugState> debugUnits = new List<UnityBridgedUnitDebugState>();
 
         private readonly Dictionary<int, GameObject> placeholderObjects = new Dictionary<int, GameObject>();
         private ICombatSessionObserver? sessionObserver;
+        private ICombatDebugSession? debugSession;
         private ObservableCombatSession? ownedSession;
         private IDisposable? subscription;
+        private readonly CombatDebugSurfacePresenter debugSurfacePresenter = new CombatDebugSurfacePresenter();
 
         public BridgedCombatSessionSnapshot? CurrentSnapshot { get; private set; }
 
         public IReadOnlyList<UnityBridgedUnitDebugState> DebugUnits => debugUnits;
+
+        public string LastActionCountLog => lastActionCountLog;
+
+        public string LastBoardOutput => lastBoardOutput;
+
+        public string LastAttackOverlayOutput => lastAttackOverlayOutput;
 
         public void OnEnable()
         {
@@ -52,7 +66,49 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         [ContextMenu("Start Observed Combat")]
         public void StartObservedCombat()
         {
-            ownedSession?.StartCombat();
+            debugSession?.StartCombat();
+            RefreshSnapshot();
+        }
+
+        [ContextMenu("Debug Move")]
+        public void ExecuteDebugMove()
+        {
+            ExecuteDebugCommand(new CombatDebugCommandRequest(
+                CombatDebugCommandType.Move,
+                debugActingUnitId,
+                new GridPosition(debugMoveDestination.x, debugMoveDestination.y),
+                debugAttackTargetUnitId));
+        }
+
+        [ContextMenu("Debug Attack")]
+        public void ExecuteDebugAttack()
+        {
+            ExecuteDebugCommand(new CombatDebugCommandRequest(
+                CombatDebugCommandType.Attack,
+                debugActingUnitId,
+                new GridPosition(debugMoveDestination.x, debugMoveDestination.y),
+                debugAttackTargetUnitId));
+        }
+
+        [ContextMenu("Debug End Turn")]
+        public void ExecuteDebugEndTurn()
+        {
+            ExecuteDebugCommand(new CombatDebugCommandRequest(
+                CombatDebugCommandType.EndTurn,
+                debugActingUnitId,
+                new GridPosition(debugMoveDestination.x, debugMoveDestination.y),
+                debugAttackTargetUnitId));
+        }
+
+        [ContextMenu("Debug Restart Combat")]
+        public void RestartObservedCombat()
+        {
+            InitializeDefaultSession();
+            if (autoStartCombatOnEnable)
+            {
+                StartObservedCombat();
+            }
+
             RefreshSnapshot();
         }
 
@@ -65,6 +121,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
 
             DetachSubscription();
             sessionObserver = observer;
+            debugSession = observer as ICombatDebugSession;
             subscription = observer.Subscribe(HandleCoreEvent);
             RefreshSnapshot();
         }
@@ -73,15 +130,35 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         {
             DetachSubscription();
             sessionObserver = null;
+            debugSession = null;
             ownedSession = null;
             CurrentSnapshot = null;
+            lastActionCountLog = string.Empty;
+            lastBoardOutput = string.Empty;
+            lastAttackOverlayOutput = string.Empty;
+            debugSurfacePresenter.Reset();
             debugUnits.Clear();
             ClearPlaceholderObjects();
         }
 
         private void HandleCoreEvent(ICombatEvent combatEvent)
         {
+            var snapshotBefore = CurrentSnapshot;
             Debug.Log($"[CoreEvent] {ScenarioLogFormatter.Format(combatEvent)}", this);
+            RefreshSnapshot();
+            EmitDerivedDebugOutput(combatEvent, snapshotBefore);
+        }
+
+        private void ExecuteDebugCommand(CombatDebugCommandRequest request)
+        {
+            var result = CombatDebugCommandExecutor.Execute(debugSession, request);
+            if (result.CommandFailureReason != CombatDebugCommandFailureReason.None)
+            {
+                Debug.LogWarning(
+                    $"[BridgeControl] command={request.CommandType} failed reason={result.CommandFailureReason}",
+                    this);
+            }
+
             RefreshSnapshot();
         }
 
@@ -98,6 +175,39 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             if (createPlaceholderObjects)
             {
                 SyncPlaceholderObjects(CurrentSnapshot);
+            }
+        }
+
+        private void EmitDerivedDebugOutput(ICombatEvent combatEvent, BridgedCombatSessionSnapshot? snapshotBefore)
+        {
+            if (CurrentSnapshot == null || debugSession is not ObservableCombatSession observableSession)
+            {
+                return;
+            }
+
+            var logs = debugSurfacePresenter.HandleEvent(
+                combatEvent,
+                snapshotBefore,
+                CurrentSnapshot,
+                observableSession.State.RemainingPlayerActions);
+
+            foreach (var log in logs)
+            {
+                switch (log.Category)
+                {
+                    case "Actions":
+                        lastActionCountLog = log.Message;
+                        Debug.Log($"[Actions] {log.Message}", this);
+                        break;
+                    case "Board":
+                        lastBoardOutput = log.Message;
+                        Debug.Log($"[Board]\n{log.Message}", this);
+                        break;
+                    case "AttackBoard":
+                        lastAttackOverlayOutput = log.Message;
+                        Debug.Log($"[AttackBoard]\n{log.Message}", this);
+                        break;
+                }
             }
         }
 

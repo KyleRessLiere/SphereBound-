@@ -9,6 +9,8 @@ if (args.Length > 0)
 var overallSuccess = true;
 overallSuccess &= RunCombatLoopSuite();
 overallSuccess &= RunScenarioRunnerSuite();
+overallSuccess &= RunUnityDebugActionSuite();
+overallSuccess &= RunCombatDebugSurfaceSuite();
 
 if (overallSuccess)
 {
@@ -90,4 +92,52 @@ static bool RunScenarioRunnerSuite()
     }
 
     return false;
+}
+
+static bool RunUnityDebugActionSuite()
+{
+    const string suiteName = "UnityDebugActionVerifier";
+    Console.WriteLine($"[suite] {suiteName}");
+
+    try
+    {
+        var checks = UnityDebugActionVerifier.RunAll();
+        foreach (var check in checks)
+        {
+            Console.WriteLine($"  [pass] {check}");
+        }
+
+        Console.WriteLine($"[suite-pass] {suiteName}");
+        return true;
+    }
+    catch (Exception exception)
+    {
+        Console.Error.WriteLine($"[suite-fail] {suiteName}");
+        Console.Error.WriteLine($"  {exception.GetType().Name}: {exception.Message}");
+        return false;
+    }
+}
+
+static bool RunCombatDebugSurfaceSuite()
+{
+    const string suiteName = "CombatDebugSurfaceVerifier";
+    Console.WriteLine($"[suite] {suiteName}");
+
+    try
+    {
+        var checks = CombatDebugSurfaceVerifier.RunAll();
+        foreach (var check in checks)
+        {
+            Console.WriteLine($"  [pass] {check}");
+        }
+
+        Console.WriteLine($"[suite-pass] {suiteName}");
+        return true;
+    }
+    catch (Exception exception)
+    {
+        Console.Error.WriteLine($"[suite-fail] {suiteName}");
+        Console.Error.WriteLine($"  {exception.GetType().Name}: {exception.Message}");
+        return false;
+    }
 }

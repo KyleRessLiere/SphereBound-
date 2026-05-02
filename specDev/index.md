@@ -26,3 +26,5 @@ Rules:
 - [02] [done] In-Repo Core Runner (`specDev/features/02-in-repo-core-runner/`)
 - [03] [done] Runner Console Log Output (`specDev/features/03-runner-console-log-output/`)
 - [04] [done] Unity Listener Bridge (`specDev/features/04-unity-listener-bridge/`)
+- [05] [done] Unity Debug Action Controls (`specDev/features/05-unity-debug-action-controls/`)
+- [06] [done] Unity Combat Debug Surface (`specDev/features/06-unity-combat-debug-surface/`)
