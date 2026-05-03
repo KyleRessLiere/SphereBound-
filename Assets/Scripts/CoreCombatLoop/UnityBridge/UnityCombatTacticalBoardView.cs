@@ -23,12 +23,14 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         private readonly Dictionary<GridPosition, UnityTacticalTileView> tileViews = new Dictionary<GridPosition, UnityTacticalTileView>();
         private readonly Dictionary<int, UnityTacticalUnitView> unitViews = new Dictionary<int, UnityTacticalUnitView>();
         private readonly HashSet<GridPosition> moveHighlights = new HashSet<GridPosition>();
+        private readonly HashSet<GridPosition> enemyMovePreviewHighlights = new HashSet<GridPosition>();
         private readonly HashSet<GridPosition> previewHighlights = new HashSet<GridPosition>();
         private bool isMoveModeArmed;
         private GridPosition? selectedTile;
         private GridPosition? invalidTile;
         private CombatRuntimeAbilityButtonModel? armedAbility;
         private CombatRuntimeAbilityPreview? currentPreview;
+        private CombatRuntimeEnemyIntentPreview? currentEnemyIntentPreview;
         private BoardDimensions currentBoard;
 
         private void OnEnable()
@@ -111,6 +113,35 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
                 }
             }
 
+            if (currentEnemyIntentPreview != null)
+            {
+                currentEnemyIntentPreview = bridge.BuildRuntimeEnemyIntentPreview(currentEnemyIntentPreview.IntentSnapshot.EnemyUnitId);
+                enemyMovePreviewHighlights.Clear();
+                if (currentEnemyIntentPreview == null)
+                {
+                    if (armedAbility == null && currentPreview == null)
+                    {
+                        previewHighlights.Clear();
+                    }
+                }
+                else
+                {
+                    for (var index = 0; index < currentEnemyIntentPreview.MoveHighlightTiles.Count; index += 1)
+                    {
+                        enemyMovePreviewHighlights.Add(currentEnemyIntentPreview.MoveHighlightTiles[index]);
+                    }
+
+                    if (armedAbility == null && currentPreview == null)
+                    {
+                        previewHighlights.Clear();
+                        for (var index = 0; index < currentEnemyIntentPreview.EffectHighlightTiles.Count; index += 1)
+                        {
+                            previewHighlights.Add(currentEnemyIntentPreview.EffectHighlightTiles[index]);
+                        }
+                    }
+                }
+            }
+
             ApplyTileHighlights();
         }
 
@@ -147,6 +178,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
                 return;
             }
 
+            ClearEnemyIntentPreview();
             isMoveModeArmed = false;
             armedAbility = abilityButton;
             invalidTile = null;
@@ -195,11 +227,26 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             }
 
             var tileView = hit.collider.GetComponentInParent<UnityTacticalTileView>();
+            var unitView = hit.collider.GetComponentInParent<UnityTacticalUnitView>();
+            if (unitView != null
+                && unitView.Side == CombatUnitSide.Enemy
+                && armedAbility == null
+                && currentPreview == null
+                && !isMoveModeArmed)
+            {
+                ToggleEnemyIntentPreview(unitView.UnitId);
+                return;
+            }
+
             if (tileView == null)
             {
                 if (armedAbility != null || currentPreview != null || isMoveModeArmed)
                 {
                     CancelInteractionMode();
+                }
+                else if (currentEnemyIntentPreview != null)
+                {
+                    ClearEnemyIntentPreview();
                 }
 
                 return;
@@ -247,6 +294,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
                 return;
             }
 
+            ClearEnemyIntentPreview();
             isMoveModeArmed = true;
             armedAbility = null;
             currentPreview = null;
@@ -315,6 +363,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         {
             isMoveModeArmed = false;
             CancelPreview();
+            ClearEnemyIntentPreview();
         }
 
         private void SyncInteractionStateWithControlSurface()
@@ -477,7 +526,8 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
                 var gridPosition = entry.Key;
                 var state = UnityTacticalTileHighlightState.Idle;
 
-                if (isMoveModeArmed && moveHighlights.Contains(gridPosition))
+                if ((isMoveModeArmed && moveHighlights.Contains(gridPosition))
+                    || enemyMovePreviewHighlights.Contains(gridPosition))
                 {
                     state = UnityTacticalTileHighlightState.MoveAvailable;
                 }
@@ -499,6 +549,56 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
 
                 entry.Value.ApplyHighlight(state);
             }
+        }
+
+        private void ToggleEnemyIntentPreview(int enemyUnitId)
+        {
+            if (bridge == null)
+            {
+                return;
+            }
+
+            if (currentEnemyIntentPreview != null && currentEnemyIntentPreview.IntentSnapshot.EnemyUnitId == enemyUnitId)
+            {
+                ClearEnemyIntentPreview();
+                return;
+            }
+
+            var preview = bridge.BuildRuntimeEnemyIntentPreview(enemyUnitId);
+            if (preview == null)
+            {
+                ClearEnemyIntentPreview();
+                return;
+            }
+
+            currentEnemyIntentPreview = preview;
+            enemyMovePreviewHighlights.Clear();
+            for (var index = 0; index < preview.MoveHighlightTiles.Count; index += 1)
+            {
+                enemyMovePreviewHighlights.Add(preview.MoveHighlightTiles[index]);
+            }
+
+            previewHighlights.Clear();
+            for (var index = 0; index < preview.EffectHighlightTiles.Count; index += 1)
+            {
+                previewHighlights.Add(preview.EffectHighlightTiles[index]);
+            }
+
+            selectedTile = null;
+            invalidTile = null;
+            ApplyTileHighlights();
+        }
+
+        private void ClearEnemyIntentPreview()
+        {
+            currentEnemyIntentPreview = null;
+            enemyMovePreviewHighlights.Clear();
+            if (armedAbility == null && currentPreview == null)
+            {
+                previewHighlights.Clear();
+            }
+
+            ApplyTileHighlights();
         }
 
         private Vector3 ToWorldPosition(GridPosition gridPosition, float yOffset)

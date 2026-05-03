@@ -11,6 +11,8 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
 
         public int UnitId => unitId;
 
+        public CombatUnitSide Side => side;
+
         public void Initialize(int id, CombatUnitSide unitSide, Renderer rendererComponent)
         {
             unitId = id;

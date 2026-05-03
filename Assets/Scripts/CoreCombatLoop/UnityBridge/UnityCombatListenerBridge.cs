@@ -175,6 +175,40 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             return new CombatRuntimeEnemyIntentPanelModel(CombatEnemyIntentPanelBuilder.Build(observableSession.State));
         }
 
+        public CombatRuntimeEnemyIntentPreview? BuildRuntimeEnemyIntentPreview(int enemyUnitId)
+        {
+            if (debugSession is not ObservableCombatSession observableSession)
+            {
+                return null;
+            }
+
+            var state = observableSession.State;
+            if (!state.TryGetUnit(enemyUnitId, out var actor) || !actor.IsAlive)
+            {
+                return null;
+            }
+
+            var intent = CombatEnemyIntentPanelBuilder.Build(state).FirstOrDefault(candidate => candidate.EnemyUnitId == enemyUnitId);
+            if (intent == null)
+            {
+                return null;
+            }
+
+            var moveHighlights = new List<GridPosition>(1);
+            if (intent.IntentType == EnemyIntentType.Move && intent.TargetPosition.HasValue)
+            {
+                moveHighlights.Add(intent.TargetPosition.Value);
+            }
+
+            var effectHighlights = BuildEnemyIntentEffectHighlightTiles(state, actor, intent);
+            if (moveHighlights.Count == 0 && effectHighlights.Count == 0)
+            {
+                return null;
+            }
+
+            return new CombatRuntimeEnemyIntentPreview(intent, moveHighlights.AsReadOnly(), effectHighlights);
+        }
+
         public CombatDebugCommandResult ExecuteRuntimeMove(CombatRuntimeDirection direction)
         {
             if (!TryGetPlayerGridPosition(out var playerPosition))
@@ -648,6 +682,67 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             }
 
             return previewPositions;
+        }
+
+        private static IReadOnlyList<GridPosition> BuildEnemyIntentEffectHighlightTiles(
+            CombatState state,
+            CombatUnitState actor,
+            EnemyIntentSnapshot intent)
+        {
+            if ((intent.IntentType != EnemyIntentType.UseAbility
+                    && intent.IntentType != EnemyIntentType.Fire
+                    && intent.IntentType != EnemyIntentType.Charge)
+                || !actor.Definition.TryGetAbility(intent.ActionId, out var ability))
+            {
+                return Array.Empty<GridPosition>();
+            }
+
+            var request = BuildEnemyIntentAbilityRequest(state, actor, intent, ability);
+            var fallbackTargetTile = request.TargetPosition
+                ?? (request.TargetUnitId.HasValue && state.TryGetUnit(request.TargetUnitId.Value, out var targetUnit)
+                    ? targetUnit.Position
+                    : actor.Position);
+
+            var resolvedTiles = CombatAbilityResolver.ResolveAffectedTiles(
+                state,
+                actor,
+                ability,
+                request,
+                out var failureReason);
+
+            return BuildPreviewHighlightTiles(state, actor, ability, request, fallbackTargetTile, resolvedTiles, failureReason);
+        }
+
+        private static AbilityUseRequest BuildEnemyIntentAbilityRequest(
+            CombatState state,
+            CombatUnitState actor,
+            EnemyIntentSnapshot intent,
+            AbilityDefinition ability)
+        {
+            var targetPosition = intent.TargetPosition;
+            if (!targetPosition.HasValue
+                && intent.TargetUnitId.HasValue
+                && state.TryGetUnit(intent.TargetUnitId.Value, out var targetUnit))
+            {
+                targetPosition = targetUnit.Position;
+            }
+
+            switch (ability.TargetingMode)
+            {
+                case AbilityTargetingMode.Self:
+                    return new AbilityUseRequest(actor.Id, ability.Id);
+                case AbilityTargetingMode.AdjacentUnit:
+                    return new AbilityUseRequest(actor.Id, ability.Id, intent.TargetUnitId, targetPosition);
+                case AbilityTargetingMode.SpecificTile:
+                case AbilityTargetingMode.Area:
+                case AbilityTargetingMode.AllUnitsInAffectedShape:
+                    return new AbilityUseRequest(actor.Id, ability.Id, targetPosition: targetPosition);
+                case AbilityTargetingMode.DirectionalShape:
+                case AbilityTargetingMode.Line:
+                    return new AbilityUseRequest(actor.Id, ability.Id, intent.TargetUnitId, targetPosition);
+                default:
+                    return new AbilityUseRequest(actor.Id, ability.Id, intent.TargetUnitId, targetPosition);
+            }
         }
 
         private static bool TryResolvePreviewAnchorPosition(

@@ -25,6 +25,7 @@ namespace Spherebound.CoreCombatLoop.Core
                     context.ActingUnitId,
                     $"Enemy {context.ActingUnitId}",
                     EnemyIntentType.EndTurn,
+                    "end-turn",
                     "End Turn",
                     null,
                     null,
@@ -37,6 +38,12 @@ namespace Spherebound.CoreCombatLoop.Core
             var targetPosition = targetPositionOverride ?? intent.TargetPosition;
             var targetDisplayName = TryResolveTargetName(context, targetUnitId);
             var intentType = intentTypeOverride ?? ResolveIntentType(intent.IntentType);
+            if (!targetPosition.HasValue && targetUnitId.HasValue && context.TryGetUnit(targetUnitId.Value, out var targetUnit))
+            {
+                targetPosition = targetUnit.Position;
+            }
+
+            var actionId = ResolveActionId(intent, intentType);
             var actionName = actionNameOverride ?? ResolveActionName(actor, intent, intentType);
             var summaryText = summaryOverride ?? BuildDefaultSummary(intentType, actionName, targetDisplayName, targetPosition, countdownValue);
 
@@ -44,6 +51,7 @@ namespace Spherebound.CoreCombatLoop.Core
                 actor.UnitId,
                 actor.Definition.Name,
                 intentType,
+                actionId,
                 actionName,
                 targetUnitId,
                 targetDisplayName,
@@ -54,6 +62,7 @@ namespace Spherebound.CoreCombatLoop.Core
 
         public static EnemyIntentSnapshot BuildCharge(
             CombatBehaviorContext context,
+            string actionId,
             string actionName,
             int countdownValue,
             int? targetUnitId = null,
@@ -61,7 +70,7 @@ namespace Spherebound.CoreCombatLoop.Core
         {
             return BuildForIntent(
                 context,
-                CombatBehaviorIntent.EndTurn(context.ActingUnitId),
+                CombatBehaviorIntent.UseAbility(context.ActingUnitId, actionId, targetUnitId, targetPosition),
                 EnemyIntentType.Charge,
                 actionName,
                 $"{actionName} - {countdownValue} turns remaining",
@@ -72,6 +81,7 @@ namespace Spherebound.CoreCombatLoop.Core
 
         public static EnemyIntentSnapshot BuildFire(
             CombatBehaviorContext context,
+            string actionId,
             string actionName,
             int? targetUnitId = null,
             GridPosition? targetPosition = null)
@@ -85,7 +95,7 @@ namespace Spherebound.CoreCombatLoop.Core
 
             return BuildForIntent(
                 context,
-                CombatBehaviorIntent.UseAbility(context.ActingUnitId, actionName, targetUnitId, targetPosition),
+                CombatBehaviorIntent.UseAbility(context.ActingUnitId, actionId, targetUnitId, targetPosition),
                 EnemyIntentType.Fire,
                 actionName,
                 summary,
@@ -103,6 +113,22 @@ namespace Spherebound.CoreCombatLoop.Core
                 CombatBehaviorIntentType.Pass => EnemyIntentType.EndTurn,
                 CombatBehaviorIntentType.EndTurn => EnemyIntentType.EndTurn,
                 _ => EnemyIntentType.None,
+            };
+        }
+
+        private static string ResolveActionId(CombatBehaviorIntent intent, EnemyIntentType intentType)
+        {
+            if ((intentType == EnemyIntentType.UseAbility || intentType == EnemyIntentType.Fire || intentType == EnemyIntentType.Charge)
+                && !string.IsNullOrWhiteSpace(intent.AbilityId))
+            {
+                return intent.AbilityId!;
+            }
+
+            return intentType switch
+            {
+                EnemyIntentType.Move => "move",
+                EnemyIntentType.EndTurn => "end-turn",
+                _ => "none",
             };
         }
 

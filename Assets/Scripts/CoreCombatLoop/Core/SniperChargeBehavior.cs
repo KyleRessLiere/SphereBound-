@@ -101,6 +101,7 @@ namespace Spherebound.CoreCombatLoop.Core
                 {
                     return EnemyIntentSummaryBuilder.BuildCharge(
                         context,
+                        lineShotAbilityId,
                         lineShotName,
                         chargeTurnsRemaining,
                         target.UnitId,
@@ -112,6 +113,7 @@ namespace Spherebound.CoreCombatLoop.Core
             {
                 return EnemyIntentSummaryBuilder.BuildCharge(
                     context,
+                    lineShotAbilityId,
                     lineShotName,
                     initialChargeTurns,
                     target.UnitId,

@@ -134,6 +134,9 @@ It should be updated after each completed feature so the team can see the game's
   - left/right ability cycling controls
 - The runtime UI also shows the player's remaining available actions in the top-left and refreshes from authoritative core turn state.
 - The runtime UI now also shows a top-right `Enemy Intent` panel built from core-generated enemy intent summaries.
+- Clicking an enemy on the tactical board can preview that enemy's current intent:
+  - red tiles for affected attack or ability tiles
+  - yellow tiles for intended movement destination
 - The `Move` button now arms movement selection on the tactical board instead of exposing four separate directional buttons.
 - The runtime ability surface is generated from the player's live definition-backed abilities rather than hardcoded UI names.
 - The selected ability button can show:
@@ -156,6 +159,7 @@ It should be updated after each completed feature so the team can see the game's
 - Tile click input can route movement requests through the existing Unity bridge and core path.
 - Valid movement tiles highlight yellow.
 - Armed attack or ability preview tiles highlight red.
+- Clicked enemy intent previews can also highlight upcoming move tiles in yellow and intended effect tiles in red.
 - Attack preview currently uses a two-click flow:
   - first click previews the targeted effect tiles
   - second click confirms the request through the core path

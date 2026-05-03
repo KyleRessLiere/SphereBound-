@@ -8,6 +8,7 @@ namespace Spherebound.CoreCombatLoop.Core
             int enemyUnitId,
             string enemyDisplayName,
             EnemyIntentType intentType,
+            string actionId,
             string actionName,
             int? targetUnitId,
             string? targetDisplayName,
@@ -25,6 +26,11 @@ namespace Spherebound.CoreCombatLoop.Core
                 throw new ArgumentException("Action name is required.", nameof(actionName));
             }
 
+            if (string.IsNullOrWhiteSpace(actionId))
+            {
+                throw new ArgumentException("Action id is required.", nameof(actionId));
+            }
+
             if (string.IsNullOrWhiteSpace(summaryText))
             {
                 throw new ArgumentException("Summary text is required.", nameof(summaryText));
@@ -33,6 +39,7 @@ namespace Spherebound.CoreCombatLoop.Core
             EnemyUnitId = enemyUnitId;
             EnemyDisplayName = enemyDisplayName;
             IntentType = intentType;
+            ActionId = actionId;
             ActionName = actionName;
             TargetUnitId = targetUnitId;
             TargetDisplayName = targetDisplayName;
@@ -46,6 +53,8 @@ namespace Spherebound.CoreCombatLoop.Core
         public string EnemyDisplayName { get; }
 
         public EnemyIntentType IntentType { get; }
+
+        public string ActionId { get; }
 
         public string ActionName { get; }
 
