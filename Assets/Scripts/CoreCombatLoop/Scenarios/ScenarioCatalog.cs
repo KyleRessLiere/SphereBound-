@@ -99,7 +99,7 @@ namespace Spherebound.CoreCombatLoop.Scenarios
                 new[]
                 {
                     new ScenarioExpectation(CombatScenarioFactory.PlayerUnitId, expectedHealth: 5, expectedPosition: CombatScenarioFactory.PlayerStartingPosition, expectedLifeState: UnitLifeState.Alive),
-                    new ScenarioExpectation(CombatScenarioFactory.EnemyUnitId, expectedHealth: 3, expectedPosition: new GridPosition(2, 2), expectedLifeState: UnitLifeState.Alive),
+                    new ScenarioExpectation(CombatScenarioFactory.EnemyUnitId, expectedHealth: 3, expectedPosition: new GridPosition(2, 3), expectedLifeState: UnitLifeState.Alive),
                 },
                 true,
                 new[]

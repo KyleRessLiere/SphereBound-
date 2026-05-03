@@ -3,19 +3,21 @@ check: VerifyInitialScenario
 result: pass
 
 [initial-board]
-[ ][ ][E][ ]
-[ ][ ][ ][ ]
-[ ][ ][ ][ ]
-[ ][P][ ][ ]
+[ ][ ][E][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][P][ ][ ]
 
 [events]
 (none)
 
 [final-board]
-[ ][ ][E][ ]
-[ ][ ][ ][ ]
-[ ][ ][ ][ ]
-[ ][P][ ][ ]
+[ ][ ][E][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][P][ ][ ]
 
 [notes]
 activeTurn=Player

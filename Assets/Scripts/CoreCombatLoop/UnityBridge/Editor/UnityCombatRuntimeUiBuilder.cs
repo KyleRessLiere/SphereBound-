@@ -28,6 +28,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
             RemoveLegacyMoveObjects();
             RemoveLegacyAbilityListObjects();
             var actionCountText = FindOrCreateActionCountText(uiRoot.transform);
+            var enemyIntentText = FindOrCreateEnemyIntentText(uiRoot.transform);
             var abilitySelectorPanel = CreateAbilitySelectorPanel(uiRoot.transform, out var moveButton, out var previousAbilityButton, out var nextAbilityButton, out var selectedAbilityButton, out var endTurnButton);
 
             var controller = uiRoot.GetComponent<UnityCombatRuntimeUiController>();
@@ -36,7 +37,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
                 controller = Undo.AddComponent<UnityCombatRuntimeUiController>(uiRoot);
             }
 
-            AssignControllerReferences(controller, bridge, actionCountText, moveButton, endTurnButton, previousAbilityButton, nextAbilityButton, selectedAbilityButton);
+            AssignControllerReferences(controller, bridge, actionCountText, enemyIntentText, moveButton, endTurnButton, previousAbilityButton, nextAbilityButton, selectedAbilityButton);
             EditorSceneManager.MarkSceneDirty(uiRoot.scene);
             Selection.activeObject = uiRoot;
         }
@@ -159,7 +160,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
             var existingCamera = Object.FindFirstObjectByType<Camera>();
             if (existingCamera != null)
             {
-                existingCamera.transform.position = new Vector3(0f, 8f, -7f);
+                existingCamera.transform.position = new Vector3(0f, 10f, -9f);
                 existingCamera.transform.rotation = Quaternion.Euler(45f, 0f, 0f);
                 return existingCamera;
             }
@@ -167,7 +168,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
             var cameraObject = new GameObject("TacticalBoardCamera");
             Undo.RegisterCreatedObjectUndo(cameraObject, "Create tactical board camera");
             var camera = cameraObject.AddComponent<Camera>();
-            camera.transform.position = new Vector3(0f, 8f, -7f);
+            camera.transform.position = new Vector3(0f, 10f, -9f);
             camera.transform.rotation = Quaternion.Euler(45f, 0f, 0f);
             camera.clearFlags = CameraClearFlags.Skybox;
             return camera;
@@ -243,6 +244,16 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
             rectTransform.sizeDelta = new Vector2(220f, 40f);
             ConfigureActionCountLabel(text);
             text.text = "Actions: 0";
+            return text;
+        }
+
+        private static TMP_Text FindOrCreateEnemyIntentText(Transform parent)
+        {
+            var panel = CreatePanel("EnemyIntentPanel", parent, new Vector2(360f, 220f), new Vector2(660f, 300f));
+            ConfigureRect((RectTransform)panel.transform, new Vector2(660f, 300f), new Vector2(360f, 220f));
+            var text = EnsureTmpLabel(panel.transform, "EnemyIntentText");
+            ConfigureEnemyIntentLabel(text);
+            text.text = "Enemy Intent\nNone";
             return text;
         }
 
@@ -380,10 +391,26 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
             text.overflowMode = TextOverflowModes.Overflow;
         }
 
+        private static void ConfigureEnemyIntentLabel(TMP_Text? text)
+        {
+            if (text == null)
+            {
+                return;
+            }
+
+            text.color = Color.white;
+            text.fontSize = 18;
+            text.alignment = TextAlignmentOptions.TopLeft;
+            text.enableWordWrapping = true;
+            text.overflowMode = TextOverflowModes.Overflow;
+            text.margin = new Vector4(12f, 12f, 12f, 12f);
+        }
+
         private static void AssignControllerReferences(
             UnityCombatRuntimeUiController controller,
             UnityCombatListenerBridge bridge,
             TMP_Text actionCountText,
+            TMP_Text enemyIntentText,
             Button moveButton,
             Button endTurnButton,
             Button previousAbilityButton,
@@ -393,6 +420,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
             var serializedObject = new SerializedObject(controller);
             serializedObject.FindProperty("bridge").objectReferenceValue = bridge;
             serializedObject.FindProperty("actionCountText").objectReferenceValue = actionCountText;
+            serializedObject.FindProperty("enemyIntentText").objectReferenceValue = enemyIntentText;
             serializedObject.FindProperty("moveButton").objectReferenceValue = moveButton;
             serializedObject.FindProperty("endTurnButton").objectReferenceValue = endTurnButton;
             serializedObject.FindProperty("previousAbilityButton").objectReferenceValue = previousAbilityButton;

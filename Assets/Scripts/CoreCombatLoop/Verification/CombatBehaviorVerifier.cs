@@ -40,7 +40,7 @@ namespace Spherebound.CoreCombatLoop.Verification
             var context = CombatBehaviorContext.FromState(state, enemy.Id);
             var decision = behavior.DecideIntent(context);
             Ensure(decision.Intent.IntentType == CombatBehaviorIntentType.Move, "MoveTowardTargetBehavior should produce a move intent when not adjacent.");
-            Ensure(decision.Intent.TargetPosition.HasValue && decision.Intent.TargetPosition.Value.X == 2 && decision.Intent.TargetPosition.Value.Y == 2, "MoveTowardTargetBehavior should prefer vertical movement first.");
+            Ensure(decision.Intent.TargetPosition.HasValue && decision.Intent.TargetPosition.Value.X == 2 && decision.Intent.TargetPosition.Value.Y == 3, "MoveTowardTargetBehavior should prefer vertical movement first.");
             completedChecks.Add(nameof(VerifyMoveTowardIntent));
         }
 

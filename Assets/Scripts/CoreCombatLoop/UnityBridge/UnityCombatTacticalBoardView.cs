@@ -17,7 +17,6 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         [SerializeField] private Transform unitRoot = null!;
         [SerializeField] private float tileSize = 1f;
         [SerializeField] private float tileGap = 0.1f;
-        [SerializeField] private float sideGap = 0.3f;
         [SerializeField] private float tileHeight = 0.12f;
         [SerializeField] private float unitHeightOffset = 0.42f;
 
@@ -506,19 +505,12 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         {
             var step = tileSize + tileGap;
             var halfWidth = (currentBoard.Width - 1) * step * 0.5f;
-            var boardDepth = ((currentBoard.Height - 1) * step) + sideGap;
-            var halfDepth = boardDepth * 0.5f;
-            var splitIndex = currentBoard.Height / 2;
-            var zPosition = gridPosition.Y * step;
-            if (gridPosition.Y >= splitIndex)
-            {
-                zPosition += sideGap;
-            }
+            var halfDepth = (currentBoard.Height - 1) * step * 0.5f;
 
             return new Vector3(
                 (gridPosition.X * step) - halfWidth,
                 yOffset,
-                zPosition - halfDepth);
+                (gridPosition.Y * step) - halfDepth);
         }
     }
 }

@@ -3,10 +3,11 @@ check: Invalid Move
 result: pass
 
 [initial-board]
-[ ][ ][ ][ ]
-[ ][E][ ][ ]
-[ ][P][ ][ ]
-[ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][E][ ][ ][ ]
+[ ][P][ ][ ][ ]
+[ ][ ][ ][ ][ ]
 
 [events]
 TurnStarted side=Player
@@ -17,7 +18,8 @@ MoveBlocked unit=1 destination=(1, 2) reason=DestinationOccupied
 ActionEnded unit=1 action=Move
 
 [final-board]
-[ ][ ][ ][ ]
-[ ][E][ ][ ]
-[ ][P][ ][ ]
-[ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][E][ ][ ][ ]
+[ ][P][ ][ ][ ]
+[ ][ ][ ][ ][ ]

@@ -1,0 +1,6 @@
+﻿suite: EnemyIntentVerifier
+check: EnemyIntentVerifier.VerifyEnemyIntentSummariesProduced
+result: pass
+
+[summary]
+Enemy intent summaries are produced for living enemies.

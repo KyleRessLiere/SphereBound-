@@ -29,9 +29,19 @@ namespace Spherebound.CoreCombatLoop.Core
 
         public CombatBehaviorDecision DecideIntent(CombatBehaviorContext context)
         {
+            return new CombatBehaviorDecision(BehaviorId, BuildIntent(context));
+        }
+
+        public EnemyIntentSnapshot DescribeIntent(CombatBehaviorContext context)
+        {
+            return EnemyIntentSummaryBuilder.BuildForIntent(context, BuildIntent(context));
+        }
+
+        private CombatBehaviorIntent BuildIntent(CombatBehaviorContext context)
+        {
             if (!context.TryGetActingUnit(out var actor))
             {
-                return new CombatBehaviorDecision(BehaviorId, CombatBehaviorIntent.EndTurn(context.ActingUnitId));
+                return CombatBehaviorIntent.EndTurn(context.ActingUnitId);
             }
 
             var targetUnitId = PreferredTargetUnitId;
@@ -40,9 +50,7 @@ namespace Spherebound.CoreCombatLoop.Core
                 targetUnitId = TryFindFirstOpponentUnitId(context, actor.Side);
             }
 
-            return new CombatBehaviorDecision(
-                BehaviorId,
-                CombatBehaviorIntent.UseAbility(actor.UnitId, AbilityId, targetUnitId));
+            return CombatBehaviorIntent.UseAbility(actor.UnitId, AbilityId, targetUnitId);
         }
 
         private static int? TryFindFirstOpponentUnitId(CombatBehaviorContext context, CombatUnitSide actorSide)

@@ -13,6 +13,8 @@ overallSuccess &= RunCombatLoopSuite();
 WriteVerifierLogs(projectRoot, VerifierFileReportFactory.CreateCombatLoopSuiteReport());
 overallSuccess &= RunCombatBehaviorSuite();
 WriteVerifierLogs(projectRoot, VerifierFileReportFactory.CreateCombatBehaviorSuiteReport());
+overallSuccess &= RunEnemyIntentSuite();
+WriteVerifierLogs(projectRoot, VerifierFileReportFactory.CreateEnemyIntentSuiteReport());
 overallSuccess &= RunAbilityDefinitionSuite();
 WriteVerifierLogs(projectRoot, VerifierFileReportFactory.CreateAbilityDefinitionSuiteReport());
 overallSuccess &= RunScenarioRunnerSuite();
@@ -144,6 +146,30 @@ static bool RunAbilityDefinitionSuite()
     try
     {
         var checks = AbilityDefinitionVerifier.RunAll();
+        foreach (var check in checks)
+        {
+            Console.WriteLine($"  [pass] {check}");
+        }
+
+        Console.WriteLine($"[suite-pass] {suiteName}");
+        return true;
+    }
+    catch (Exception exception)
+    {
+        Console.Error.WriteLine($"[suite-fail] {suiteName}");
+        Console.Error.WriteLine($"  {exception.GetType().Name}: {exception.Message}");
+        return false;
+    }
+}
+
+static bool RunEnemyIntentSuite()
+{
+    const string suiteName = "EnemyIntentVerifier";
+    Console.WriteLine($"[suite] {suiteName}");
+
+    try
+    {
+        var checks = EnemyIntentVerifier.RunAll();
         foreach (var check in checks)
         {
             Console.WriteLine($"  [pass] {check}");

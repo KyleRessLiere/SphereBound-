@@ -21,28 +21,56 @@ namespace Spherebound.CoreCombatLoop.Core
 
         public CombatBehaviorDecision DecideIntent(CombatBehaviorContext context)
         {
+            return new CombatBehaviorDecision(BehaviorId, BuildIntent(context));
+        }
+
+        public EnemyIntentSnapshot DescribeIntent(CombatBehaviorContext context)
+        {
             if (!context.TryGetActingUnit(out var actor)
                 || !context.TryGetUnit(TargetUnitId, out var target)
                 || !target.IsAlive)
             {
-                return new CombatBehaviorDecision(BehaviorId, CombatBehaviorIntent.EndTurn(context.ActingUnitId));
+                return EnemyIntentSummaryBuilder.BuildForIntent(
+                    context,
+                    CombatBehaviorIntent.EndTurn(context.ActingUnitId));
+            }
+
+            var intent = BuildIntent(context);
+            if (intent.IntentType == CombatBehaviorIntentType.Move)
+            {
+                return EnemyIntentSummaryBuilder.BuildForIntent(
+                    context,
+                    intent,
+                    actionNameOverride: "Move",
+                    summaryOverride: $"Move toward {target.Definition.Name}",
+                    targetUnitIdOverride: target.UnitId);
+            }
+
+            return EnemyIntentSummaryBuilder.BuildForIntent(context, intent);
+        }
+
+        private CombatBehaviorIntent BuildIntent(CombatBehaviorContext context)
+        {
+            if (!context.TryGetActingUnit(out var actor)
+                || !context.TryGetUnit(TargetUnitId, out var target)
+                || !target.IsAlive)
+            {
+                return CombatBehaviorIntent.EndTurn(context.ActingUnitId);
             }
 
             if (actor.Position.IsOrthogonallyAdjacentTo(target.Position)
                 && !string.IsNullOrWhiteSpace(actor.Definition.DefaultAttackAbilityId))
             {
-                return new CombatBehaviorDecision(
-                    BehaviorId,
-                    CombatBehaviorIntent.UseAbility(actor.UnitId, actor.Definition.DefaultAttackAbilityId!, target.UnitId));
+                return CombatBehaviorIntent.UseAbility(actor.UnitId, actor.Definition.DefaultAttackAbilityId!, target.UnitId);
             }
 
             var destination = GetDestination(context, actor.Position, target.Position);
             if (!destination.HasValue)
             {
-                return new CombatBehaviorDecision(BehaviorId, CombatBehaviorIntent.EndTurn(actor.UnitId));
+                return CombatBehaviorIntent.EndTurn(actor.UnitId);
             }
 
-            return new CombatBehaviorDecision(BehaviorId, CombatBehaviorIntent.Move(actor.UnitId, destination.Value));
+            return CombatBehaviorIntent.Move(actor.UnitId, destination.Value);
         }
 
         private static GridPosition? GetDestination(CombatBehaviorContext context, GridPosition from, GridPosition to)

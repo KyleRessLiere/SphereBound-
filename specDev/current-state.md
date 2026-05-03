@@ -7,7 +7,7 @@ It should be updated after each completed feature so the team can see the game's
 ## Core Gameplay
 
 - The game has a deterministic core combat loop implemented in pure C#.
-- Combat runs on a `4x4` grid.
+- Combat runs on a `5x5` grid.
 - The current scenario contains `1` player and `1` enemy.
 - The player starts first and has `2` actions per turn.
 - The player can move orthogonally by `1` tile and attack an adjacent enemy.
@@ -56,9 +56,16 @@ It should be updated after each completed feature so the team can see the game's
   - spam ability
   - scripted sequence
   - manual behavior shell
+  - sniper charge behavior
 - Existing enemy chase behavior is now represented through the behavior system instead of a hardcoded enemy branch.
 - Behavior decisions are logged through a dedicated event before downstream gameplay events resolve.
 - Deterministic scripted and behavior-driven turn cycles can now be initialized in scenario state and played without Unity input.
+- The core can now produce readable enemy intent snapshots for living enemies, including countdown-based charge intents.
+- A first sniper enemy behavior now supports:
+  - row/column alignment detection
+  - multi-turn charge countdown
+  - line-shot firing through the existing ability and damage event path
+  - canceling the shot when alignment is broken before the firing turn
 
 ## Architecture
 
@@ -74,6 +81,7 @@ It should be updated after each completed feature so the team can see the game's
 - The current verification stack covers:
   - combat loop behavior
   - pluggable combat behavior
+  - enemy intent and sniper charge behavior
   - ability and player-definition behavior
   - scenario runner behavior
   - scenario-based ability and behavior validation
@@ -125,6 +133,7 @@ It should be updated after each completed feature so the team can see the game's
   - one large selected-ability button
   - left/right ability cycling controls
 - The runtime UI also shows the player's remaining available actions in the top-left and refreshes from authoritative core turn state.
+- The runtime UI now also shows a top-right `Enemy Intent` panel built from core-generated enemy intent summaries.
 - The `Move` button now arms movement selection on the tactical board instead of exposing four separate directional buttons.
 - The runtime ability surface is generated from the player's live definition-backed abilities rather than hardcoded UI names.
 - The selected ability button can show:
@@ -138,9 +147,8 @@ It should be updated after each completed feature so the team can see the game's
 
 ## Tactical Board View
 
-- Unity now has a basic primitive-driven 3D tactical board view for the current `4x4` combat board.
+- Unity now has a basic primitive-driven 3D tactical board view for the current `5x5` combat board.
 - The board renders as grey square tiles with slight spacing and a simple floating presentation.
-- The Unity board view applies a small visual separation between the player-side half and enemy-side half of the `4x4` board.
 - The first pass currently supports one player unit and one enemy unit visually.
 - The player renders as a sphere and the enemy renders as a cube, both centered on their current tiles and smaller than the tile footprint.
 - Unit visuals update from bridge snapshots and core events rather than Unity-owned gameplay state.

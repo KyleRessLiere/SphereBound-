@@ -3,10 +3,11 @@ check: Move Then Kill
 result: pass
 
 [initial-board]
-[ ][ ][ ][ ]
-[ ][ ][E][ ]
-[ ][P][ ][ ]
-[ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][E][ ][ ]
+[ ][P][ ][ ][ ]
+[ ][ ][ ][ ][ ]
 
 [events]
 TurnStarted side=Player
@@ -27,7 +28,8 @@ ActionSpent unit=1 remainingActions=0
 ActionEnded unit=1 action=Attack
 
 [final-board]
-[ ][ ][ ][ ]
-[ ][P][ ][ ]
-[ ][ ][ ][ ]
-[ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][P][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]

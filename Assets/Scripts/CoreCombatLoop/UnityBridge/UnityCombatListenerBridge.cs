@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Spherebound.CoreCombatLoop.Core;
 using Spherebound.CoreCombatLoop.Scenarios;
 using UnityEngine;
@@ -162,6 +163,16 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
                 canEndTurn: false,
                 remainingPlayerActions: 0,
                 abilityButtons: Array.Empty<CombatRuntimeAbilityButtonModel>());
+        }
+
+        public CombatRuntimeEnemyIntentPanelModel BuildRuntimeEnemyIntentPanelModel()
+        {
+            if (debugSession is not ObservableCombatSession observableSession)
+            {
+                return new CombatRuntimeEnemyIntentPanelModel(Array.Empty<EnemyIntentSnapshot>());
+            }
+
+            return new CombatRuntimeEnemyIntentPanelModel(CombatEnemyIntentPanelBuilder.Build(observableSession.State));
         }
 
         public CombatDebugCommandResult ExecuteRuntimeMove(CombatRuntimeDirection direction)
@@ -345,6 +356,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             RefreshSnapshot();
             EmitDerivedDebugOutput(combatEvent, snapshotBefore);
         }
+
 
         private CombatDebugCommandResult ExecuteDebugCommand(CombatDebugCommandRequest request)
         {

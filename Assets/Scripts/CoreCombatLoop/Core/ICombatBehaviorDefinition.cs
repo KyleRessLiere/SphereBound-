@@ -5,5 +5,7 @@ namespace Spherebound.CoreCombatLoop.Core
         string BehaviorId { get; }
 
         CombatBehaviorDecision DecideIntent(CombatBehaviorContext context);
+
+        EnemyIntentSnapshot DescribeIntent(CombatBehaviorContext context);
     }
 }

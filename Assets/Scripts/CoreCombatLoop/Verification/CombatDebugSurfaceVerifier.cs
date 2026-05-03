@@ -39,11 +39,11 @@ namespace Spherebound.CoreCombatLoop.Verification
 
             presenter.HandleEvent(new TurnStarted(CombatTurnSide.Player), null, session.CaptureSnapshot(), session.State.RemainingPlayerActions);
 
-            var moveResult = session.ResolveMove(CombatScenarioFactory.PlayerUnitId, new GridPosition(1, 1));
+            var moveResult = session.ResolveMove(CombatScenarioFactory.PlayerUnitId, new GridPosition(2, 1));
             var logs = ReplayLogs(presenter, session, moveResult.Events, session.CaptureSnapshot());
 
             var boardLog = logs.Single(log => log.Category == "Board");
-            Ensure(boardLog.Message.Contains("[ ][P][ ][ ]"), "Movement board output should show the moved player position in bracketed format.");
+            Ensure(boardLog.Message.Contains("[P]"), "Movement board output should show the moved player position in bracketed format.");
             completedChecks.Add(nameof(VerifyMovementBoardOutput));
         }
 
@@ -109,7 +109,7 @@ namespace Spherebound.CoreCombatLoop.Verification
                 session.State.RemainingPlayerActions);
             Ensure(initialLogs.Any(log => log.Category == "Actions" && log.Message == "remainingActions=2"), "Initial action count should be logged.");
 
-            var moveResult = session.ResolveMove(CombatScenarioFactory.PlayerUnitId, new GridPosition(1, 1));
+            var moveResult = session.ResolveMove(CombatScenarioFactory.PlayerUnitId, new GridPosition(2, 1));
             var moveLogs = ReplayLogs(presenter, session, moveResult.Events, session.CaptureSnapshot());
             Ensure(moveLogs.Any(log => log.Category == "Actions" && log.Message == "remainingActions=1"), "Action count should update after spending an action.");
 

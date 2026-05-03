@@ -3,10 +3,11 @@ check: VerifyPlayerMovement
 result: pass
 
 [initial-board]
-[ ][ ][E][ ]
-[ ][ ][ ][ ]
-[ ][P][ ][ ]
-[ ][ ][ ][ ]
+[ ][ ][E][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][P][ ][ ][ ]
+[ ][ ][ ][ ][ ]
 
 [events]
 MoveRequested unit=1 destination=(1, 2)
@@ -16,10 +17,11 @@ ActionSpent unit=1 remainingActions=1
 ActionEnded unit=1 action=Move
 
 [final-board]
-[ ][ ][E][ ]
-[ ][P][ ][ ]
-[ ][ ][ ][ ]
-[ ][ ][ ][ ]
+[ ][ ][E][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][P][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
 
 [notes]
 failureReason=None

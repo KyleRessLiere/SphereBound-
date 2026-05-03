@@ -1,0 +1,6 @@
+﻿suite: EnemyIntentVerifier
+check: EnemyIntentVerifier.VerifySniperFiresAfterChargeCompletesWhenAligned
+result: pass
+
+[summary]
+Sniper fires after charge completes when alignment is preserved.

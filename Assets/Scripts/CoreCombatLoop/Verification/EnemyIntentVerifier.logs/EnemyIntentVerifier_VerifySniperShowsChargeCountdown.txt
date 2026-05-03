@@ -1,0 +1,6 @@
+﻿suite: EnemyIntentVerifier
+check: EnemyIntentVerifier.VerifySniperShowsChargeCountdown
+result: pass
+
+[summary]
+Sniper intent shows a charge countdown.

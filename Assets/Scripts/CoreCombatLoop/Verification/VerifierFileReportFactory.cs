@@ -45,6 +45,22 @@ namespace Spherebound.CoreCombatLoop.Verification
             return new VerifierSuiteFileReport(suiteName, checks.All(check => check.Succeeded), checks);
         }
 
+        public static VerifierSuiteFileReport CreateEnemyIntentSuiteReport()
+        {
+            const string suiteName = nameof(EnemyIntentVerifier);
+            var checks = new List<VerifierCheckFileReport>
+            {
+                AssertionCheck(suiteName, nameof(EnemyIntentVerifier) + ".VerifyEnemyIntentSummariesProduced", "Enemy intent summaries are produced for living enemies."),
+                AssertionCheck(suiteName, nameof(EnemyIntentVerifier) + ".VerifyLivingEnemiesAppearInIntentList", "Enemy intent lists include all living enemies."),
+                AssertionCheck(suiteName, nameof(EnemyIntentVerifier) + ".VerifySniperShowsChargeCountdown", "Sniper intent shows a charge countdown."),
+                AssertionCheck(suiteName, nameof(EnemyIntentVerifier) + ".VerifySniperCountdownDecreasesDeterministically", "Sniper charge countdown decreases deterministically."),
+                AssertionCheck(suiteName, nameof(EnemyIntentVerifier) + ".VerifySniperFiresAfterChargeCompletesWhenAligned", "Sniper fires after charge completes when alignment is preserved."),
+                AssertionCheck(suiteName, nameof(EnemyIntentVerifier) + ".VerifySniperDoesNotFireIfAlignmentIsBroken", "Sniper does not fire if alignment is broken before the firing step."),
+            };
+
+            return new VerifierSuiteFileReport(suiteName, checks.All(check => check.Succeeded), checks);
+        }
+
         public static VerifierSuiteFileReport CreateAbilityDefinitionSuiteReport()
         {
             const string suiteName = nameof(AbilityDefinitionVerifier);
@@ -561,7 +577,7 @@ namespace Spherebound.CoreCombatLoop.Verification
         {
             var session = ObservableCombatSession.CreateDefault("debug-move");
             session.StartCombat();
-            return BuildDebugCommandCombatFlow(nameof(UnityDebugActionVerifier), nameof(VerifyMoveCommand), session, CombatDebugCommandRequest.Move(CombatScenarioFactory.PlayerUnitId, new GridPosition(1, 1)));
+            return BuildDebugCommandCombatFlow(nameof(UnityDebugActionVerifier), nameof(VerifyMoveCommand), session, CombatDebugCommandRequest.Move(CombatScenarioFactory.PlayerUnitId, new GridPosition(2, 1)));
         }
 
         private static string BuildUnityDebugAttack()
@@ -609,7 +625,7 @@ namespace Spherebound.CoreCombatLoop.Verification
         private static string BuildDebugSurfaceMovement()
         {
             var session = ObservableCombatSession.CreateDefault("move-board");
-            var result = session.ResolveMove(CombatScenarioFactory.PlayerUnitId, new GridPosition(1, 1));
+            var result = session.ResolveMove(CombatScenarioFactory.PlayerUnitId, new GridPosition(2, 1));
             return CombatFlowVerifierLogBuilder.Build(
                 nameof(CombatDebugSurfaceVerifier),
                 nameof(VerifyMovementBoardOutput),
@@ -663,7 +679,7 @@ namespace Spherebound.CoreCombatLoop.Verification
             var session = ObservableCombatSession.CreateDefault("action-count");
             var eventLines = new List<string>();
             eventLines.Add("TurnStarted side=Player");
-            eventLines.AddRange(session.ResolveMove(CombatScenarioFactory.PlayerUnitId, new GridPosition(1, 1)).Events.Select(ScenarioLogFormatter.Format));
+            eventLines.AddRange(session.ResolveMove(CombatScenarioFactory.PlayerUnitId, new GridPosition(2, 1)).Events.Select(ScenarioLogFormatter.Format));
             eventLines.AddRange(session.EndPlayerTurnAndRunEnemyTurn().Select(ScenarioLogFormatter.Format));
             return CombatFlowVerifierLogBuilder.Build(
                 nameof(CombatDebugSurfaceVerifier),

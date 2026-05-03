@@ -3,10 +3,11 @@ check: Basic Attack Miss
 result: pass
 
 [initial-board]
-[ ][ ][E][ ]
-[ ][ ][ ][ ]
-[ ][ ][ ][ ]
-[ ][P][ ][ ]
+[ ][ ][E][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][P][ ][ ]
 
 [events]
 TurnStarted side=Player
@@ -17,7 +18,8 @@ ActionSpent unit=1 remainingActions=1
 ActionEnded unit=1 action=Attack
 
 [final-board]
-[ ][ ][E][ ]
-[ ][ ][ ][ ]
-[ ][ ][ ][ ]
-[ ][P][ ][ ]
+[ ][ ][E][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][P][ ][ ]

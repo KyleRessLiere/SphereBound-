@@ -3,10 +3,11 @@ check: Ability Shape Validation
 result: pass
 
 [initial-board]
-[ ][E][E][ ]
-[ ][E][E][E]
-[ ][ ][P][ ]
-[ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][E][E][ ][ ]
+[ ][E][E][E][ ]
+[ ][ ][P][ ][ ]
+[ ][ ][ ][ ][ ]
 
 [events]
 TurnStarted side=Player
@@ -45,7 +46,8 @@ TurnStarted side=Enemy
 TurnEnded side=Enemy
 
 [final-board]
-[ ][E][ ][ ]
-[ ][ ][ ][ ]
-[ ][ ][P][ ]
-[ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][E][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][P][ ][ ]
+[ ][ ][ ][ ][ ]

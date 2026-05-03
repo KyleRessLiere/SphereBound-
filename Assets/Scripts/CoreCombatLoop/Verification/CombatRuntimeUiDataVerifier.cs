@@ -17,6 +17,7 @@ namespace Spherebound.CoreCombatLoop.Verification
             VerifyControlSurfaceIncludesResolvedEffectTiles(completedChecks);
             VerifyUiAbilityRequestUsesDefinitionBackedAbility(completedChecks);
             VerifyAbilitySelectionCycling(completedChecks);
+            VerifyEnemyIntentPanelModelIncludesLivingEnemies(completedChecks);
 
             return completedChecks;
         }
@@ -49,7 +50,7 @@ namespace Spherebound.CoreCombatLoop.Verification
 
             var forwardLineButton = model.AbilityButtons.Single(button => button.AbilityId == CombatScenarioFactory.ForwardLineAbilityId);
             Ensure(forwardLineButton.ResolvedEffectTiles.Count == 2, "Forward Line should expose two resolved effect tiles.");
-            Ensure(forwardLineButton.ResolvedEffectTileText.Contains("(1, 2)"), "Resolved effect tile text should include the first forward tile.");
+            Ensure(forwardLineButton.ResolvedEffectTileText.Contains("(2, 1)"), "Resolved effect tile text should include the first forward tile.");
 
             var frontCrossButton = model.AbilityButtons.Single(button => button.AbilityId == CombatScenarioFactory.FrontCrossAbilityId);
             Ensure(frontCrossButton.ResolvedEffectTiles.Count >= 3, "Front Cross should expose multiple resolved effect tiles.");
@@ -75,6 +76,15 @@ namespace Spherebound.CoreCombatLoop.Verification
             Ensure(CombatRuntimeAbilitySelection.Cycle(0, -1, 3) == 2, "Ability cycling should wrap backward from the first ability.");
             Ensure(CombatRuntimeAbilitySelection.Cycle(2, 1, 3) == 0, "Ability cycling should wrap forward from the last ability.");
             completedChecks.Add(nameof(VerifyAbilitySelectionCycling));
+        }
+
+        private static void VerifyEnemyIntentPanelModelIncludesLivingEnemies(List<string> completedChecks)
+        {
+            var state = CombatScenarioFactory.CreateInitialState();
+            var intents = CombatEnemyIntentPanelBuilder.Build(state);
+            Ensure(intents.Count == 1, "Enemy intent panel model should include the living default enemy.");
+            Ensure(intents[0].EnemyDisplayName == "Enemy Grunt", "Enemy intent panel model should preserve display names.");
+            completedChecks.Add(nameof(VerifyEnemyIntentPanelModelIncludesLivingEnemies));
         }
 
         private static void Ensure(bool condition, string message)

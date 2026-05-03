@@ -8,6 +8,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
     {
         [SerializeField] private UnityCombatListenerBridge bridge = null!;
         [SerializeField] private TMP_Text actionCountText = null!;
+        [SerializeField] private TMP_Text enemyIntentText = null!;
         [SerializeField] private Button moveButton = null!;
         [SerializeField] private Button endTurnButton = null!;
         [SerializeField] private Button previousAbilityButton = null!;
@@ -77,6 +78,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
 
             var model = bridge.BuildRuntimeControlSurfaceModel();
             ApplyActionCount(model);
+            ApplyEnemyIntentPanel();
             ApplyMoveState(model);
             ApplyEndTurnState(model);
             ApplyAbilitySelection(model);
@@ -90,6 +92,31 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             }
 
             actionCountText.text = $"Actions: {model.RemainingPlayerActions}";
+        }
+
+        private void ApplyEnemyIntentPanel()
+        {
+            if (enemyIntentText == null || bridge == null)
+            {
+                return;
+            }
+
+            var intentModel = bridge.BuildRuntimeEnemyIntentPanelModel();
+            if (intentModel.EnemyIntents.Count == 0)
+            {
+                enemyIntentText.text = "Enemy Intent\nNone";
+                return;
+            }
+
+            var lines = new string[intentModel.EnemyIntents.Count + 1];
+            lines[0] = "Enemy Intent";
+            for (var index = 0; index < intentModel.EnemyIntents.Count; index += 1)
+            {
+                var intent = intentModel.EnemyIntents[index];
+                lines[index + 1] = $"{intent.EnemyDisplayName}: {intent.SummaryText}";
+            }
+
+            enemyIntentText.text = string.Join("\n", lines);
         }
 
         private void ApplyMoveState(CombatRuntimeControlSurfaceModel model)

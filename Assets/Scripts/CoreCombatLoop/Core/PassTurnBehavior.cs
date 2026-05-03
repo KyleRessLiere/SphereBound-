@@ -15,5 +15,12 @@ namespace Spherebound.CoreCombatLoop.Core
         {
             return new CombatBehaviorDecision(BehaviorId, CombatBehaviorIntent.EndTurn(context.ActingUnitId));
         }
+
+        public EnemyIntentSnapshot DescribeIntent(CombatBehaviorContext context)
+        {
+            return EnemyIntentSummaryBuilder.BuildForIntent(
+                context,
+                CombatBehaviorIntent.EndTurn(context.ActingUnitId));
+        }
     }
 }

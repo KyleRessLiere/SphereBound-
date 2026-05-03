@@ -7,4 +7,4 @@ MoveTowardTargetBehavior chooses a deterministic move intent.
 
 [details]
 intent=Move
-targetPosition=(2, 2)
+targetPosition=(2, 3)

@@ -28,7 +28,7 @@ namespace Spherebound.CoreCombatLoop.Verification
         {
             var state = CombatScenarioFactory.CreateInitialState();
 
-            Ensure(state.Board.Width == 4 && state.Board.Height == 4, "Initial board should be 4x4.");
+            Ensure(state.Board.Width == 5 && state.Board.Height == 5, "Initial board should be 5x5.");
             Ensure(state.ActiveTurn == CombatTurnSide.Player, "Player should act first.");
             Ensure(state.RemainingPlayerActions == 2, "Player should start with 2 actions.");
             Ensure(state.TryGetUnit(CombatScenarioFactory.PlayerUnitId, out var player), "Player should exist.");

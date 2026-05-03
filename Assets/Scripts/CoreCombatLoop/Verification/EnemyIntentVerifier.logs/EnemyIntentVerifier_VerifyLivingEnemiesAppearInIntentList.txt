@@ -1,0 +1,6 @@
+﻿suite: EnemyIntentVerifier
+check: EnemyIntentVerifier.VerifyLivingEnemiesAppearInIntentList
+result: pass
+
+[summary]
+Enemy intent lists include all living enemies.

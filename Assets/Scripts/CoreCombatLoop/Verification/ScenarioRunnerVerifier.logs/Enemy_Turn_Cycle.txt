@@ -3,25 +3,27 @@ check: Enemy Turn Cycle
 result: pass
 
 [initial-board]
-[ ][ ][E][ ]
-[ ][ ][ ][ ]
-[ ][ ][ ][ ]
-[ ][P][ ][ ]
+[ ][ ][E][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][P][ ][ ]
 
 [events]
 TurnStarted side=Player
 TurnEnded side=Player
 TurnStarted side=Enemy
-BehaviorIntentSelected unit=2 behavior=enemy-move-toward-player intent=Move ability=none targetUnit=none targetPosition=(2, 2)
-MoveRequested unit=2 destination=(2, 2)
+BehaviorIntentSelected unit=2 behavior=enemy-move-toward-player intent=Move ability=none targetUnit=none targetPosition=(2, 3)
+MoveRequested unit=2 destination=(2, 3)
 ActionStarted unit=2 action=Move
-UnitMoved unit=2 from=(2, 3) to=(2, 2)
+UnitMoved unit=2 from=(2, 4) to=(2, 3)
 ActionEnded unit=2 action=Move
 TurnEnded side=Enemy
 TurnStarted side=Player
 
 [final-board]
-[ ][ ][ ][ ]
-[ ][ ][E][ ]
-[ ][ ][ ][ ]
-[ ][P][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][E][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][P][ ][ ]

@@ -1,0 +1,6 @@
+﻿suite: EnemyIntentVerifier
+check: EnemyIntentVerifier.VerifySniperCountdownDecreasesDeterministically
+result: pass
+
+[summary]
+Sniper charge countdown decreases deterministically.

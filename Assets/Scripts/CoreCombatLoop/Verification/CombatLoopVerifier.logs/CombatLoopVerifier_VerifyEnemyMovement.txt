@@ -3,10 +3,11 @@ check: VerifyEnemyMovement
 result: pass
 
 [initial-board]
-[ ][ ][ ][E]
-[ ][ ][ ][ ]
-[ ][P][ ][ ]
-[ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][E][ ]
+[ ][ ][ ][ ][ ]
+[ ][P][ ][ ][ ]
+[ ][ ][ ][ ][ ]
 
 [events]
 BehaviorIntentSelected unit=2 behavior=enemy-default-chase intent=Move ability=none targetUnit=none targetPosition=(3, 2)
@@ -16,10 +17,11 @@ UnitMoved unit=2 from=(3, 3) to=(3, 2)
 ActionEnded unit=2 action=Move
 
 [final-board]
-[ ][ ][ ][ ]
-[ ][ ][ ][E]
-[ ][P][ ][ ]
-[ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ]
+[ ][ ][ ][E][ ]
+[ ][P][ ][ ][ ]
+[ ][ ][ ][ ][ ]
 
 [notes]
 failureReason=None

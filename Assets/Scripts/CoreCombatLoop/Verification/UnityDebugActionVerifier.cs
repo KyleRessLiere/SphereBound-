@@ -30,7 +30,7 @@ namespace Spherebound.CoreCombatLoop.Verification
                 session,
                 CombatDebugCommandRequest.Move(
                     CombatScenarioFactory.PlayerUnitId,
-                    new GridPosition(1, 1)));
+                    new GridPosition(2, 1)));
 
             Ensure(result.Succeeded, "Debug move should succeed for a valid adjacent destination.");
             Ensure(result.CommandFailureReason == CombatDebugCommandFailureReason.None, "Debug move should not fail at the bridge-command layer.");
@@ -38,7 +38,7 @@ namespace Spherebound.CoreCombatLoop.Verification
 
             var snapshot = session.CaptureSnapshot();
             var player = snapshot.Units.Single(unit => unit.UnitId == CombatScenarioFactory.PlayerUnitId);
-            Ensure(player.Position.X == 1 && player.Position.Y == 1, "Debug move should update authoritative player position.");
+            Ensure(player.Position.X == 2 && player.Position.Y == 1, "Debug move should update authoritative player position.");
             Ensure(result.Events.Any(evt => evt is MoveRequested), "Debug move should emit MoveRequested.");
             completedChecks.Add(nameof(VerifyMoveCommand));
         }
@@ -114,7 +114,7 @@ namespace Spherebound.CoreCombatLoop.Verification
                 firstSession,
                 CombatDebugCommandRequest.Move(
                     CombatScenarioFactory.PlayerUnitId,
-                    new GridPosition(1, 2)));
+                    new GridPosition(2, 1)));
 
             var restartedSession = ObservableCombatSession.CreateDefault("restart-after");
             restartedSession.StartCombat();

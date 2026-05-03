@@ -1,0 +1,6 @@
+﻿suite: EnemyIntentVerifier
+check: EnemyIntentVerifier.VerifySniperDoesNotFireIfAlignmentIsBroken
+result: pass
+
+[summary]
+Sniper does not fire if alignment is broken before the firing step.
