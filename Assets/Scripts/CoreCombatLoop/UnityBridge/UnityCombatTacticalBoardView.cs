@@ -17,6 +17,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         [SerializeField] private Transform unitRoot = null!;
         [SerializeField] private float tileSize = 1f;
         [SerializeField] private float tileGap = 0.1f;
+        [SerializeField] private float sideGap = 0.3f;
         [SerializeField] private float tileHeight = 0.12f;
         [SerializeField] private float unitHeightOffset = 0.42f;
 
@@ -96,6 +97,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             EnsureTiles(snapshot.Board);
             SyncUnits(snapshot);
             RebuildMoveHighlights();
+            SyncInteractionStateWithControlSurface();
             if (currentPreview != null)
             {
                 currentPreview = bridge.BuildRuntimeAbilityPreview(currentPreview.AbilityButton, currentPreview.TargetTile);
@@ -136,11 +138,26 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
 
         private void ArmAbilityPreview(CombatRuntimeAbilityButtonModel abilityButton)
         {
+            if (armedAbility != null
+                && currentPreview != null
+                && armedAbility.AbilityId == abilityButton.AbilityId
+                && armedAbility.ActingUnitId == abilityButton.ActingUnitId)
+            {
+                bridge.ExecuteRuntimeAbilityPreview(currentPreview);
+                CancelInteractionMode();
+                return;
+            }
+
             isMoveModeArmed = false;
             armedAbility = abilityButton;
-            currentPreview = null;
-            previewHighlights.Clear();
             invalidTile = null;
+            currentPreview = bridge.BuildRuntimeAbilityPreview(abilityButton);
+            previewHighlights.Clear();
+            if (currentPreview != null)
+            {
+                CopyPreviewHighlights(currentPreview);
+            }
+
             ApplyTileHighlights();
         }
 
@@ -150,6 +167,10 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             {
                 return;
             }
+
+            var controlSurface = bridge != null
+                ? bridge.BuildRuntimeControlSurfaceModel()
+                : null;
 
             var screenPosition = ReadPointerScreenPosition();
             if (screenPosition == null)
@@ -189,13 +210,29 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             selectedTile = clickedTile;
             invalidTile = null;
 
-            if (armedAbility != null)
+            if (armedAbility != null && currentPreview != null)
             {
-                HandlePreviewClick(clickedTile);
+                if (IsAbilityStillInteractable(controlSurface, armedAbility))
+                {
+                    bridge.ExecuteRuntimeAbilityPreview(currentPreview);
+                    CancelInteractionMode();
+                }
+                else
+                {
+                    CancelPreview();
+                }
+
                 return;
             }
 
-            if (isMoveModeArmed && moveHighlights.Contains(clickedTile))
+            if (armedAbility != null)
+            {
+                invalidTile = clickedTile;
+                ApplyTileHighlights();
+                return;
+            }
+
+            if (isMoveModeArmed && moveHighlights.Contains(clickedTile) && controlSurface != null && controlSurface.CanMove)
             {
                 bridge.ExecuteRuntimeMoveTo(clickedTile);
                 isMoveModeArmed = false;
@@ -206,6 +243,11 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
 
         private void ArmMoveMode()
         {
+            if (bridge != null && !bridge.BuildRuntimeControlSurfaceModel().CanMove)
+            {
+                return;
+            }
+
             isMoveModeArmed = true;
             armedAbility = null;
             currentPreview = null;
@@ -252,34 +294,6 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
 #endif
         }
 
-        private void HandlePreviewClick(GridPosition clickedTile)
-        {
-            if (armedAbility == null)
-            {
-                return;
-            }
-
-            if (currentPreview != null && currentPreview.TargetTile.Equals(clickedTile))
-            {
-                bridge.ExecuteRuntimeAbilityPreview(currentPreview);
-                CancelInteractionMode();
-                return;
-            }
-
-            currentPreview = bridge.BuildRuntimeAbilityPreview(armedAbility, clickedTile);
-            previewHighlights.Clear();
-
-            if (currentPreview == null)
-            {
-                invalidTile = clickedTile;
-                ApplyTileHighlights();
-                return;
-            }
-
-            CopyPreviewHighlights(currentPreview);
-            ApplyTileHighlights();
-        }
-
         private void CopyPreviewHighlights(CombatRuntimeAbilityPreview preview)
         {
             previewHighlights.Clear();
@@ -302,6 +316,64 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         {
             isMoveModeArmed = false;
             CancelPreview();
+        }
+
+        private void SyncInteractionStateWithControlSurface()
+        {
+            if (bridge == null)
+            {
+                return;
+            }
+
+            var controlSurface = bridge.BuildRuntimeControlSurfaceModel();
+            if (!controlSurface.CanMove)
+            {
+                isMoveModeArmed = false;
+            }
+
+            if (armedAbility == null)
+            {
+                return;
+            }
+
+            var matchingAbility = FindMatchingAbility(controlSurface, armedAbility);
+            if (matchingAbility == null || !matchingAbility.IsInteractable)
+            {
+                CancelPreview();
+                return;
+            }
+
+            armedAbility = matchingAbility;
+        }
+
+        private static CombatRuntimeAbilityButtonModel? FindMatchingAbility(
+            CombatRuntimeControlSurfaceModel controlSurface,
+            CombatRuntimeAbilityButtonModel abilityButton)
+        {
+            for (var index = 0; index < controlSurface.AbilityButtons.Count; index += 1)
+            {
+                var candidate = controlSurface.AbilityButtons[index];
+                if (candidate.AbilityId == abilityButton.AbilityId
+                    && candidate.ActingUnitId == abilityButton.ActingUnitId)
+                {
+                    return candidate;
+                }
+            }
+
+            return null;
+        }
+
+        private static bool IsAbilityStillInteractable(
+            CombatRuntimeControlSurfaceModel? controlSurface,
+            CombatRuntimeAbilityButtonModel abilityButton)
+        {
+            if (controlSurface == null)
+            {
+                return false;
+            }
+
+            var matchingAbility = FindMatchingAbility(controlSurface, abilityButton);
+            return matchingAbility != null && matchingAbility.IsInteractable;
         }
 
         private void EnsureRoots()
@@ -434,11 +506,19 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         {
             var step = tileSize + tileGap;
             var halfWidth = (currentBoard.Width - 1) * step * 0.5f;
-            var halfHeight = (currentBoard.Height - 1) * step * 0.5f;
+            var boardDepth = ((currentBoard.Height - 1) * step) + sideGap;
+            var halfDepth = boardDepth * 0.5f;
+            var splitIndex = currentBoard.Height / 2;
+            var zPosition = gridPosition.Y * step;
+            if (gridPosition.Y >= splitIndex)
+            {
+                zPosition += sideGap;
+            }
+
             return new Vector3(
                 (gridPosition.X * step) - halfWidth,
                 yOffset,
-                (gridPosition.Y * step) - halfHeight);
+                zPosition - halfDepth);
         }
     }
 }

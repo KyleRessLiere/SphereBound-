@@ -3,12 +3,10 @@ check: VerifyInvalidMovement
 result: fail
 
 [initial-board]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][E][ ][ ][ ][ ]
-[ ][P][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ]
+[ ][E][ ][ ]
+[ ][P][ ][ ]
+[ ][ ][ ][ ]
 
 [events]
 MoveRequested unit=1 destination=(1, 2)
@@ -18,12 +16,10 @@ MoveBlocked unit=1 destination=(1, 2) reason=DestinationOccupied
 ActionEnded unit=1 action=Move
 
 [final-board]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][E][ ][ ][ ][ ]
-[ ][P][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ]
+[ ][E][ ][ ]
+[ ][P][ ][ ]
+[ ][ ][ ][ ]
 
 [notes]
 failureReason=DestinationOccupied

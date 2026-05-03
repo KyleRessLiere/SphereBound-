@@ -28,7 +28,7 @@ namespace Spherebound.CoreCombatLoop.Verification
         {
             var state = CombatScenarioFactory.CreateInitialState();
 
-            Ensure(state.Board.Width == 6 && state.Board.Height == 6, "Initial board should be 6x6.");
+            Ensure(state.Board.Width == 4 && state.Board.Height == 4, "Initial board should be 4x4.");
             Ensure(state.ActiveTurn == CombatTurnSide.Player, "Player should act first.");
             Ensure(state.RemainingPlayerActions == 2, "Player should start with 2 actions.");
             Ensure(state.TryGetUnit(CombatScenarioFactory.PlayerUnitId, out var player), "Player should exist.");
@@ -57,7 +57,7 @@ namespace Spherebound.CoreCombatLoop.Verification
 
         private static void VerifyPlayerMovement(List<string> completedChecks)
         {
-            var state = CreateState(new GridPosition(1, 1), 5, new GridPosition(4, 4), 3, CombatTurnSide.Player, 2);
+            var state = CreateState(new GridPosition(1, 1), 5, CombatScenarioFactory.EnemyStartingPosition, 3, CombatTurnSide.Player, 2);
             var engine = new CombatEngine();
 
             var result = engine.ResolveMove(state, CombatScenarioFactory.PlayerUnitId, new GridPosition(1, 2));
@@ -144,7 +144,7 @@ namespace Spherebound.CoreCombatLoop.Verification
 
         private static void VerifyOutOfTurnFailure(List<string> completedChecks)
         {
-            var state = CreateState(new GridPosition(1, 1), 5, new GridPosition(4, 4), 3, CombatTurnSide.Enemy, 2);
+            var state = CreateState(new GridPosition(1, 1), 5, CombatScenarioFactory.EnemyStartingPosition, 3, CombatTurnSide.Enemy, 2);
             var engine = new CombatEngine();
 
             var result = engine.ResolveMove(state, CombatScenarioFactory.PlayerUnitId, new GridPosition(1, 2));
@@ -163,7 +163,7 @@ namespace Spherebound.CoreCombatLoop.Verification
             int remainingPlayerActions)
         {
             return new CombatState(
-                new BoardDimensions(6, 6),
+                CombatScenarioFactory.CreateDefaultBoardDimensions(),
                 activeTurn,
                 remainingPlayerActions,
                 new[]

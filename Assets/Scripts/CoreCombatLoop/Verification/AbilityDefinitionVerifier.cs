@@ -223,7 +223,7 @@ namespace Spherebound.CoreCombatLoop.Verification
             int remainingPlayerActions)
         {
             return new CombatState(
-                new BoardDimensions(6, 6),
+                CombatScenarioFactory.CreateDefaultBoardDimensions(),
                 CombatTurnSide.Player,
                 remainingPlayerActions,
                 new[]

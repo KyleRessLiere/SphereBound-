@@ -3,12 +3,10 @@ check: VerifyDeathAndRemoval
 result: pass
 
 [initial-board]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][E][ ][ ][ ][ ]
-[ ][P][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ]
+[ ][E][ ][ ]
+[ ][P][ ][ ]
+[ ][ ][ ][ ]
 
 [events]
 AbilityRequested actor=1 ability=basic-attack targetUnit=2 targetPosition=none
@@ -23,12 +21,10 @@ ActionSpent unit=1 remainingActions=1
 ActionEnded unit=1 action=Attack
 
 [final-board]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][P][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ]
+[ ][ ][ ][ ]
+[ ][P][ ][ ]
+[ ][ ][ ][ ]
 
 [notes]
 failureReason=None

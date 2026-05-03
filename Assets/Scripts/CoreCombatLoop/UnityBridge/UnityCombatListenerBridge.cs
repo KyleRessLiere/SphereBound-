@@ -157,7 +157,11 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
                 return CombatRuntimeControlSurfaceBuilder.Build(observableSession.State);
             }
 
-            return new CombatRuntimeControlSurfaceModel(canMove: false, canEndTurn: false, abilityButtons: Array.Empty<CombatRuntimeAbilityButtonModel>());
+            return new CombatRuntimeControlSurfaceModel(
+                canMove: false,
+                canEndTurn: false,
+                remainingPlayerActions: 0,
+                abilityButtons: Array.Empty<CombatRuntimeAbilityButtonModel>());
         }
 
         public CombatDebugCommandResult ExecuteRuntimeMove(CombatRuntimeDirection direction)
@@ -283,15 +287,51 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
                 request,
                 out var failureReason);
 
-            if (failureReason != CombatFailureReason.None)
+            var positions = BuildPreviewHighlightTiles(observableSession.State, actor, ability, request, targetTile, resolvedTiles, failureReason);
+            if (positions.Count == 0)
             {
                 return null;
             }
 
-            var positions = new List<GridPosition>(resolvedTiles.Count);
-            for (var index = 0; index < resolvedTiles.Count; index += 1)
+            return new CombatRuntimeAbilityPreview(abilityButton, request, targetTile, positions);
+        }
+
+        public CombatRuntimeAbilityPreview? BuildRuntimeAbilityPreview(CombatRuntimeAbilityButtonModel abilityButton)
+        {
+            if (abilityButton == null)
             {
-                positions.Add(resolvedTiles[index].Position);
+                throw new ArgumentNullException(nameof(abilityButton));
+            }
+
+            if (debugSession is not ObservableCombatSession observableSession)
+            {
+                return null;
+            }
+
+            if (!observableSession.State.TryGetUnit(abilityButton.ActingUnitId, out var actor)
+                || !actor.IsAlive
+                || !actor.Definition.TryGetAbility(abilityButton.AbilityId, out var ability))
+            {
+                return null;
+            }
+
+            var request = CombatRuntimeAbilityRequestResolver.CreateRuntimeRequest(observableSession.State, actor, ability);
+            var resolvedTiles = CombatAbilityResolver.ResolveAffectedTiles(
+                observableSession.State,
+                actor,
+                ability,
+                request,
+                out var failureReason);
+
+            var targetTile = request.TargetPosition
+                ?? (request.TargetUnitId.HasValue && observableSession.State.TryGetUnit(request.TargetUnitId.Value, out var targetUnit)
+                    ? targetUnit.Position
+                    : CombatRuntimeAbilityRequestResolver.ResolveForwardTargetPosition(observableSession.State, actor));
+
+            var positions = BuildPreviewHighlightTiles(observableSession.State, actor, ability, request, targetTile, resolvedTiles, failureReason);
+            if (positions.Count == 0)
+            {
+                return null;
             }
 
             return new CombatRuntimeAbilityPreview(abilityButton, request, targetTile, positions);
@@ -541,15 +581,160 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
                     return new AbilityUseRequest(actor.Id, ability.Id, targetPosition: selectedTile);
 
                 case AbilityTargetingMode.SpecificTile:
-                case AbilityTargetingMode.DirectionalShape:
-                case AbilityTargetingMode.Line:
                 case AbilityTargetingMode.Area:
                 case AbilityTargetingMode.AllUnitsInAffectedShape:
                     return new AbilityUseRequest(actor.Id, ability.Id, targetPosition: selectedTile);
 
+                case AbilityTargetingMode.DirectionalShape:
+                case AbilityTargetingMode.Line:
+                    return new AbilityUseRequest(
+                        actor.Id,
+                        ability.Id,
+                        targetPosition: CombatRuntimeAbilityRequestResolver.ResolveForwardTargetPosition(state, actor));
+
                 default:
                     return CombatRuntimeAbilityRequestResolver.CreateRuntimeRequest(state, actor, ability);
             }
+        }
+
+        private static IReadOnlyList<GridPosition> BuildPreviewHighlightTiles(
+            CombatState state,
+            CombatUnitState actor,
+            AbilityDefinition ability,
+            AbilityUseRequest request,
+            GridPosition fallbackTargetTile,
+            IReadOnlyList<ResolvedAbilityTile> resolvedTiles,
+            CombatFailureReason failureReason)
+        {
+            if (failureReason == CombatFailureReason.None)
+            {
+                var resolvedPositions = new List<GridPosition>(resolvedTiles.Count);
+                for (var index = 0; index < resolvedTiles.Count; index += 1)
+                {
+                    resolvedPositions.Add(resolvedTiles[index].Position);
+                }
+
+                return resolvedPositions;
+            }
+
+            if (!TryResolvePreviewAnchorPosition(state, actor, ability, request, fallbackTargetTile, out var anchorPosition))
+            {
+                return Array.Empty<GridPosition>();
+            }
+
+            var previewPositions = new List<GridPosition>();
+            var offsets = ability.TilePattern.Offsets;
+            for (var index = 0; index < offsets.Count; index += 1)
+            {
+                var translatedPosition = TranslatePreviewOffset(actor.Position, anchorPosition, ability.TilePattern.Anchor, offsets[index]);
+                if (!state.Board.Contains(translatedPosition))
+                {
+                    continue;
+                }
+
+                previewPositions.Add(translatedPosition);
+            }
+
+            return previewPositions;
+        }
+
+        private static bool TryResolvePreviewAnchorPosition(
+            CombatState state,
+            CombatUnitState actor,
+            AbilityDefinition ability,
+            AbilityUseRequest request,
+            GridPosition fallbackTargetTile,
+            out GridPosition anchorPosition)
+        {
+            switch (ability.TargetingMode)
+            {
+                case AbilityTargetingMode.Self:
+                    anchorPosition = actor.Position;
+                    return true;
+
+                case AbilityTargetingMode.AdjacentUnit:
+                    if (request.TargetUnitId.HasValue && state.TryGetUnit(request.TargetUnitId.Value, out var targetUnit))
+                    {
+                        anchorPosition = targetUnit.Position;
+                        return true;
+                    }
+
+                    anchorPosition = request.TargetPosition ?? fallbackTargetTile;
+                    return state.Board.Contains(anchorPosition);
+
+                case AbilityTargetingMode.SpecificTile:
+                case AbilityTargetingMode.DirectionalShape:
+                case AbilityTargetingMode.Line:
+                case AbilityTargetingMode.Area:
+                case AbilityTargetingMode.AllUnitsInAffectedShape:
+                    anchorPosition = request.TargetPosition ?? fallbackTargetTile;
+                    return state.Board.Contains(anchorPosition);
+
+                default:
+                    anchorPosition = fallbackTargetTile;
+                    return state.Board.Contains(anchorPosition);
+            }
+        }
+
+        private static GridPosition TranslatePreviewOffset(
+            GridPosition actorPosition,
+            GridPosition anchorPosition,
+            AbilityTilePatternAnchor anchor,
+            GridOffset offset)
+        {
+            switch (anchor)
+            {
+                case AbilityTilePatternAnchor.ActorPosition:
+                    return new GridPosition(actorPosition.X + offset.X, actorPosition.Y + offset.Y);
+
+                case AbilityTilePatternAnchor.TargetPosition:
+                    return new GridPosition(anchorPosition.X + offset.X, anchorPosition.Y + offset.Y);
+
+                case AbilityTilePatternAnchor.DirectionFromActorToTarget:
+                    var normalizedDirection = NormalizePreviewDirection(actorPosition, anchorPosition);
+                    var rotatedOffset = RotatePreviewOffset(offset, normalizedDirection);
+                    return new GridPosition(actorPosition.X + rotatedOffset.X, actorPosition.Y + rotatedOffset.Y);
+
+                default:
+                    return new GridPosition(anchorPosition.X + offset.X, anchorPosition.Y + offset.Y);
+            }
+        }
+
+        private static GridOffset NormalizePreviewDirection(GridPosition actorPosition, GridPosition anchorPosition)
+        {
+            var deltaX = anchorPosition.X - actorPosition.X;
+            var deltaY = anchorPosition.Y - actorPosition.Y;
+            if (deltaX == 0 && deltaY == 0)
+            {
+                return new GridOffset(0, 1);
+            }
+
+            if (deltaX != 0)
+            {
+                return new GridOffset(deltaX > 0 ? 1 : -1, 0);
+            }
+
+            return new GridOffset(0, deltaY > 0 ? 1 : -1);
+        }
+
+        private static GridOffset RotatePreviewOffset(GridOffset offset, GridOffset direction)
+        {
+            if (direction.X == 0 && direction.Y == 1)
+            {
+                return offset;
+            }
+
+            if (direction.X == 1 && direction.Y == 0)
+            {
+                return new GridOffset(offset.Y, -offset.X);
+            }
+
+            if (direction.X == 0 && direction.Y == -1)
+            {
+                return new GridOffset(-offset.X, -offset.Y);
+            }
+
+            return new GridOffset(-offset.Y, offset.X);
         }
     }
 }

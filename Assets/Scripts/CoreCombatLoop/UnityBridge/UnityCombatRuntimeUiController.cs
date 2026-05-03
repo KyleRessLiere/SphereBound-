@@ -1,11 +1,13 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Spherebound.CoreCombatLoop.UnityBridge
 {
     public sealed class UnityCombatRuntimeUiController : MonoBehaviour
     {
         [SerializeField] private UnityCombatListenerBridge bridge = null!;
+        [SerializeField] private TMP_Text actionCountText = null!;
         [SerializeField] private Button moveButton = null!;
         [SerializeField] private Button endTurnButton = null!;
         [SerializeField] private Button previousAbilityButton = null!;
@@ -74,9 +76,20 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             }
 
             var model = bridge.BuildRuntimeControlSurfaceModel();
+            ApplyActionCount(model);
             ApplyMoveState(model);
             ApplyEndTurnState(model);
             ApplyAbilitySelection(model);
+        }
+
+        private void ApplyActionCount(CombatRuntimeControlSurfaceModel model)
+        {
+            if (actionCountText == null)
+            {
+                return;
+            }
+
+            actionCountText.text = $"Actions: {model.RemainingPlayerActions}";
         }
 
         private void ApplyMoveState(CombatRuntimeControlSurfaceModel model)

@@ -7,13 +7,15 @@ namespace Spherebound.CoreCombatLoop.Core
         public const string FrontCrossAbilityId = "front-cross";
         public const int PlayerUnitId = 1;
         public const int EnemyUnitId = 2;
-        public const int BoardWidth = 6;
-        public const int BoardHeight = 6;
+        public const int BoardWidth = 4;
+        public const int BoardHeight = 4;
         public const int PlayerStartingHealth = 5;
         public const int EnemyStartingHealth = 3;
         public const int PlayerActionsPerTurn = 2;
         public const string ManualPlayerBehaviorId = "player-manual";
         public const string EnemyMoveTowardPlayerBehaviorId = "enemy-move-toward-player";
+        public static readonly GridPosition PlayerStartingPosition = new GridPosition(1, 0);
+        public static readonly GridPosition EnemyStartingPosition = new GridPosition(2, 3);
         private static readonly MovementCapabilityDefinition DefaultMovementCapability = new MovementCapabilityDefinition(range: 1, actionCost: 1, orthogonalOnly: true);
         private static readonly AbilityDefinition BasicAttackAbility = new AbilityDefinition(
             BasicAttackAbilityId,
@@ -116,7 +118,7 @@ namespace Spherebound.CoreCombatLoop.Core
         public static CombatState CreateInitialState()
         {
             return new CombatState(
-                new BoardDimensions(BoardWidth, BoardHeight),
+                CreateDefaultBoardDimensions(),
                 CombatTurnSide.Player,
                 PlayerActionsPerTurn,
                 new[]
@@ -125,7 +127,7 @@ namespace Spherebound.CoreCombatLoop.Core
                         PlayerUnitId,
                         CombatUnitSide.Player,
                         PlayerStartingHealth,
-                        new GridPosition(1, 1),
+                        PlayerStartingPosition,
                         UnitLifeState.Alive,
                         PlayerDefinitionValue,
                         CombatBehaviorAssignment.Manual(new ManualCombatBehavior(ManualPlayerBehaviorId))),
@@ -133,11 +135,16 @@ namespace Spherebound.CoreCombatLoop.Core
                         EnemyUnitId,
                         CombatUnitSide.Enemy,
                         EnemyStartingHealth,
-                        new GridPosition(4, 4),
+                        EnemyStartingPosition,
                         UnitLifeState.Alive,
                         EnemyDefinitionValue,
                         CombatBehaviorAssignment.Default(new MoveTowardTargetBehavior(EnemyMoveTowardPlayerBehaviorId, PlayerUnitId))),
                 });
+        }
+
+        public static BoardDimensions CreateDefaultBoardDimensions()
+        {
+            return new BoardDimensions(BoardWidth, BoardHeight);
         }
     }
 }

@@ -279,7 +279,7 @@ namespace Spherebound.CoreCombatLoop.Verification
 
         private static string BuildCombatLoopPlayerMovement()
         {
-            var state = CreateState(new GridPosition(1, 1), 5, new GridPosition(4, 4), 3, CombatTurnSide.Player, 2);
+            var state = CreateState(new GridPosition(1, 1), 5, CombatScenarioFactory.EnemyStartingPosition, 3, CombatTurnSide.Player, 2);
             return BuildSingleActionCombatFlow(nameof(CombatLoopVerifier), nameof(VerifyPlayerMovement), state, engine => engine.ResolveMove(state, CombatScenarioFactory.PlayerUnitId, new GridPosition(1, 2)));
         }
 
@@ -315,7 +315,7 @@ namespace Spherebound.CoreCombatLoop.Verification
 
         private static string BuildCombatLoopOutOfTurnFailure()
         {
-            var state = CreateState(new GridPosition(1, 1), 5, new GridPosition(4, 4), 3, CombatTurnSide.Enemy, 2);
+            var state = CreateState(new GridPosition(1, 1), 5, CombatScenarioFactory.EnemyStartingPosition, 3, CombatTurnSide.Enemy, 2);
             return BuildSingleActionCombatFlow(nameof(CombatLoopVerifier), nameof(VerifyOutOfTurnFailure), state, engine => engine.ResolveMove(state, CombatScenarioFactory.PlayerUnitId, new GridPosition(1, 2)));
         }
 
@@ -398,7 +398,7 @@ namespace Spherebound.CoreCombatLoop.Verification
         private static string BuildBehaviorEnemyEquivalence()
         {
             var state = new CombatState(
-                new BoardDimensions(6, 6),
+                CombatScenarioFactory.CreateDefaultBoardDimensions(),
                 CombatTurnSide.Enemy,
                 0,
                 new[]
@@ -561,7 +561,7 @@ namespace Spherebound.CoreCombatLoop.Verification
         {
             var session = ObservableCombatSession.CreateDefault("debug-move");
             session.StartCombat();
-            return BuildDebugCommandCombatFlow(nameof(UnityDebugActionVerifier), nameof(VerifyMoveCommand), session, CombatDebugCommandRequest.Move(CombatScenarioFactory.PlayerUnitId, new GridPosition(1, 2)));
+            return BuildDebugCommandCombatFlow(nameof(UnityDebugActionVerifier), nameof(VerifyMoveCommand), session, CombatDebugCommandRequest.Move(CombatScenarioFactory.PlayerUnitId, new GridPosition(1, 1)));
         }
 
         private static string BuildUnityDebugAttack()
@@ -569,7 +569,7 @@ namespace Spherebound.CoreCombatLoop.Verification
             var session = new ObservableCombatSession(
                 "debug-attack",
                 new CombatState(
-                    new BoardDimensions(6, 6),
+                    CombatScenarioFactory.CreateDefaultBoardDimensions(),
                     CombatTurnSide.Player,
                     2,
                     new[]
@@ -609,7 +609,7 @@ namespace Spherebound.CoreCombatLoop.Verification
         private static string BuildDebugSurfaceMovement()
         {
             var session = ObservableCombatSession.CreateDefault("move-board");
-            var result = session.ResolveMove(CombatScenarioFactory.PlayerUnitId, new GridPosition(1, 2));
+            var result = session.ResolveMove(CombatScenarioFactory.PlayerUnitId, new GridPosition(1, 1));
             return CombatFlowVerifierLogBuilder.Build(
                 nameof(CombatDebugSurfaceVerifier),
                 nameof(VerifyMovementBoardOutput),
@@ -624,7 +624,7 @@ namespace Spherebound.CoreCombatLoop.Verification
             var session = new ObservableCombatSession(
                 "attack-overlay",
                 new CombatState(
-                    new BoardDimensions(6, 6),
+                    CombatScenarioFactory.CreateDefaultBoardDimensions(),
                     CombatTurnSide.Player,
                     2,
                     new[]
@@ -637,7 +637,7 @@ namespace Spherebound.CoreCombatLoop.Verification
                 nameof(CombatDebugSurfaceVerifier),
                 nameof(VerifyAttackOverlayOutput),
                 result.Succeeded,
-                VerificationBoardStateFormatter.FormatBoard(new CombatState(new BoardDimensions(6, 6), CombatTurnSide.Player, 2, new[] {
+                VerificationBoardStateFormatter.FormatBoard(new CombatState(CombatScenarioFactory.CreateDefaultBoardDimensions(), CombatTurnSide.Player, 2, new[] {
                     new CombatUnitState(CombatScenarioFactory.PlayerUnitId, CombatUnitSide.Player, 5, new GridPosition(1,1), UnitLifeState.Alive),
                     new CombatUnitState(CombatScenarioFactory.EnemyUnitId, CombatUnitSide.Enemy, 3, new GridPosition(1,2), UnitLifeState.Alive),
                 })),
@@ -663,7 +663,7 @@ namespace Spherebound.CoreCombatLoop.Verification
             var session = ObservableCombatSession.CreateDefault("action-count");
             var eventLines = new List<string>();
             eventLines.Add("TurnStarted side=Player");
-            eventLines.AddRange(session.ResolveMove(CombatScenarioFactory.PlayerUnitId, new GridPosition(1, 2)).Events.Select(ScenarioLogFormatter.Format));
+            eventLines.AddRange(session.ResolveMove(CombatScenarioFactory.PlayerUnitId, new GridPosition(1, 1)).Events.Select(ScenarioLogFormatter.Format));
             eventLines.AddRange(session.EndPlayerTurnAndRunEnemyTurn().Select(ScenarioLogFormatter.Format));
             return CombatFlowVerifierLogBuilder.Build(
                 nameof(CombatDebugSurfaceVerifier),
@@ -712,7 +712,7 @@ namespace Spherebound.CoreCombatLoop.Verification
             int remainingPlayerActions)
         {
             return new CombatState(
-                new BoardDimensions(6, 6),
+                CombatScenarioFactory.CreateDefaultBoardDimensions(),
                 activeTurn,
                 remainingPlayerActions,
                 new[]
@@ -731,7 +731,7 @@ namespace Spherebound.CoreCombatLoop.Verification
             int remainingPlayerActions)
         {
             return new CombatState(
-                new BoardDimensions(6, 6),
+                CombatScenarioFactory.CreateDefaultBoardDimensions(),
                 CombatTurnSide.Player,
                 remainingPlayerActions,
                 new[]

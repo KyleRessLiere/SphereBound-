@@ -24,8 +24,10 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
 
             var canvas = CreateCanvas();
             var uiRoot = CreateUiRoot(canvas.transform);
+            RepairTmpLabels(uiRoot.transform);
             RemoveLegacyMoveObjects();
             RemoveLegacyAbilityListObjects();
+            var actionCountText = FindOrCreateActionCountText(uiRoot.transform);
             var abilitySelectorPanel = CreateAbilitySelectorPanel(uiRoot.transform, out var moveButton, out var previousAbilityButton, out var nextAbilityButton, out var selectedAbilityButton, out var endTurnButton);
 
             var controller = uiRoot.GetComponent<UnityCombatRuntimeUiController>();
@@ -34,7 +36,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
                 controller = Undo.AddComponent<UnityCombatRuntimeUiController>(uiRoot);
             }
 
-            AssignControllerReferences(controller, bridge, moveButton, endTurnButton, previousAbilityButton, nextAbilityButton, selectedAbilityButton);
+            AssignControllerReferences(controller, bridge, actionCountText, moveButton, endTurnButton, previousAbilityButton, nextAbilityButton, selectedAbilityButton);
             EditorSceneManager.MarkSceneDirty(uiRoot.scene);
             Selection.activeObject = uiRoot;
         }
@@ -105,19 +107,51 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
 
         private static Canvas CreateCanvas()
         {
+            var existingCanvasObject = GameObject.Find("CombatRuntimeCanvas");
+            if (existingCanvasObject != null && existingCanvasObject.TryGetComponent<Canvas>(out var namedCanvas))
+            {
+                ConfigureCanvas(namedCanvas);
+                return namedCanvas;
+            }
+
             var existingCanvas = Object.FindFirstObjectByType<Canvas>();
             if (existingCanvas != null)
             {
-                return existingCanvas;
+                if (existingCanvas.gameObject.name == "CombatRuntimeCanvas")
+                {
+                    ConfigureCanvas(existingCanvas);
+                    return existingCanvas;
+                }
             }
 
             var canvasObject = new GameObject("CombatRuntimeCanvas");
             Undo.RegisterCreatedObjectUndo(canvasObject, "Create combat runtime canvas");
             var canvas = canvasObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvasObject.AddComponent<CanvasScaler>();
-            canvasObject.AddComponent<GraphicRaycaster>();
+            ConfigureCanvas(canvas);
             return canvas;
+        }
+
+        private static void ConfigureCanvas(Canvas canvas)
+        {
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.worldCamera = null;
+            canvas.planeDistance = 100f;
+
+            var canvasScaler = canvas.GetComponent<CanvasScaler>();
+            if (canvasScaler == null)
+            {
+                canvasScaler = Undo.AddComponent<CanvasScaler>(canvas.gameObject);
+            }
+
+            canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            canvasScaler.referenceResolution = new Vector2(1920f, 1080f);
+            canvasScaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+            canvasScaler.matchWidthOrHeight = 0.5f;
+
+            if (canvas.GetComponent<GraphicRaycaster>() == null)
+            {
+                Undo.AddComponent<GraphicRaycaster>(canvas.gameObject);
+            }
         }
 
         private static Camera EnsureBoardCamera()
@@ -157,18 +191,27 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
             var existingRoot = GameObject.Find("CombatRuntimeUiRoot");
             if (existingRoot != null)
             {
+                existingRoot.transform.SetParent(canvasTransform, false);
+                ConfigureUiRootRect((RectTransform)existingRoot.transform);
                 return existingRoot;
             }
 
             var root = new GameObject("CombatRuntimeUiRoot", typeof(RectTransform));
             Undo.RegisterCreatedObjectUndo(root, "Create runtime UI root");
             root.transform.SetParent(canvasTransform, false);
-            var rectTransform = (RectTransform)root.transform;
+            ConfigureUiRootRect((RectTransform)root.transform);
+            return root;
+        }
+
+        private static void ConfigureUiRootRect(RectTransform rectTransform)
+        {
             rectTransform.anchorMin = new Vector2(0f, 0f);
             rectTransform.anchorMax = new Vector2(1f, 1f);
             rectTransform.offsetMin = Vector2.zero;
             rectTransform.offsetMax = Vector2.zero;
-            return root;
+            rectTransform.localScale = Vector3.one;
+            rectTransform.localRotation = Quaternion.identity;
+            rectTransform.anchoredPosition3D = Vector3.zero;
         }
 
         private static GameObject CreateAbilitySelectorPanel(
@@ -187,6 +230,20 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
             selectedAbilityButton = FindRequiredAbilityButton(panel.transform, "SelectedAbilityButton", Vector2.zero, new Vector2(260f, 120f));
             endTurnButton = FindRequiredButton(panel.transform, "EndTurnButton", "End Turn", new Vector2(0f, -90f), new Vector2(140f, 36f));
             return panel;
+        }
+
+        private static TMP_Text FindOrCreateActionCountText(Transform parent)
+        {
+            var text = EnsureTmpLabel(parent, "ActionCountText");
+            var rectTransform = (RectTransform)text.transform;
+            rectTransform.anchorMin = new Vector2(0f, 1f);
+            rectTransform.anchorMax = new Vector2(0f, 1f);
+            rectTransform.pivot = new Vector2(0f, 1f);
+            rectTransform.anchoredPosition = new Vector2(24f, -24f);
+            rectTransform.sizeDelta = new Vector2(220f, 40f);
+            ConfigureActionCountLabel(text);
+            text.text = "Actions: 0";
+            return text;
         }
 
         private static CombatRuntimeAbilityButtonView CreateSelectedAbilityButton(Transform parent)
@@ -309,9 +366,24 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
             text.overflowMode = TextOverflowModes.Overflow;
         }
 
+        private static void ConfigureActionCountLabel(TMP_Text? text)
+        {
+            if (text == null)
+            {
+                return;
+            }
+
+            text.color = Color.white;
+            text.fontSize = 24;
+            text.alignment = TextAlignmentOptions.TopLeft;
+            text.enableWordWrapping = false;
+            text.overflowMode = TextOverflowModes.Overflow;
+        }
+
         private static void AssignControllerReferences(
             UnityCombatRuntimeUiController controller,
             UnityCombatListenerBridge bridge,
+            TMP_Text actionCountText,
             Button moveButton,
             Button endTurnButton,
             Button previousAbilityButton,
@@ -320,6 +392,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
         {
             var serializedObject = new SerializedObject(controller);
             serializedObject.FindProperty("bridge").objectReferenceValue = bridge;
+            serializedObject.FindProperty("actionCountText").objectReferenceValue = actionCountText;
             serializedObject.FindProperty("moveButton").objectReferenceValue = moveButton;
             serializedObject.FindProperty("endTurnButton").objectReferenceValue = endTurnButton;
             serializedObject.FindProperty("previousAbilityButton").objectReferenceValue = previousAbilityButton;
@@ -369,7 +442,38 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
                 tmpText = Undo.AddComponent<TextMeshProUGUI>(labelObject);
             }
 
+            var fontAsset = ResolveDefaultFontAsset();
+            if (fontAsset != null)
+            {
+                tmpText.font = fontAsset;
+            }
+
             return tmpText;
+        }
+
+        private static TMP_FontAsset? ResolveDefaultFontAsset()
+        {
+            if (TMP_Settings.defaultFontAsset != null)
+            {
+                return TMP_Settings.defaultFontAsset;
+            }
+
+            return AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset");
+        }
+
+        private static void RepairTmpLabels(Transform root)
+        {
+            var fontAsset = ResolveDefaultFontAsset();
+            if (fontAsset == null)
+            {
+                return;
+            }
+
+            var labels = root.GetComponentsInChildren<TextMeshProUGUI>(true);
+            for (var index = 0; index < labels.Length; index += 1)
+            {
+                labels[index].font = fontAsset;
+            }
         }
 
         private static Button FindRequiredButton(Transform parent, string name, string label, Vector2 anchoredPosition, Vector2 size)

@@ -30,7 +30,7 @@ namespace Spherebound.CoreCombatLoop.Verification
                 session,
                 CombatDebugCommandRequest.Move(
                     CombatScenarioFactory.PlayerUnitId,
-                    new GridPosition(1, 2)));
+                    new GridPosition(1, 1)));
 
             Ensure(result.Succeeded, "Debug move should succeed for a valid adjacent destination.");
             Ensure(result.CommandFailureReason == CombatDebugCommandFailureReason.None, "Debug move should not fail at the bridge-command layer.");
@@ -38,7 +38,7 @@ namespace Spherebound.CoreCombatLoop.Verification
 
             var snapshot = session.CaptureSnapshot();
             var player = snapshot.Units.Single(unit => unit.UnitId == CombatScenarioFactory.PlayerUnitId);
-            Ensure(player.Position.X == 1 && player.Position.Y == 2, "Debug move should update authoritative player position.");
+            Ensure(player.Position.X == 1 && player.Position.Y == 1, "Debug move should update authoritative player position.");
             Ensure(result.Events.Any(evt => evt is MoveRequested), "Debug move should emit MoveRequested.");
             completedChecks.Add(nameof(VerifyMoveCommand));
         }
@@ -48,7 +48,7 @@ namespace Spherebound.CoreCombatLoop.Verification
             var session = new ObservableCombatSession(
                 "debug-attack",
                 new CombatState(
-                    new BoardDimensions(6, 6),
+                    CombatScenarioFactory.CreateDefaultBoardDimensions(),
                     CombatTurnSide.Player,
                     2,
                     new[]
@@ -102,7 +102,7 @@ namespace Spherebound.CoreCombatLoop.Verification
 
             var snapshot = session.CaptureSnapshot();
             var player = snapshot.Units.Single(unit => unit.UnitId == CombatScenarioFactory.PlayerUnitId);
-            Ensure(player.Position.X == 1 && player.Position.Y == 1, "Enemy turn should not corrupt player position in the default scenario.");
+            Ensure(player.Position.X == CombatScenarioFactory.PlayerStartingPosition.X && player.Position.Y == CombatScenarioFactory.PlayerStartingPosition.Y, "Enemy turn should not corrupt player position in the default scenario.");
             completedChecks.Add(nameof(VerifyEndTurnCommand));
         }
 
@@ -121,7 +121,7 @@ namespace Spherebound.CoreCombatLoop.Verification
             var snapshot = restartedSession.CaptureSnapshot();
             var player = snapshot.Units.Single(unit => unit.UnitId == CombatScenarioFactory.PlayerUnitId);
 
-            Ensure(player.Position.X == 1 && player.Position.Y == 1, "Restart should create a fresh session with initial player position.");
+            Ensure(player.Position.X == CombatScenarioFactory.PlayerStartingPosition.X && player.Position.Y == CombatScenarioFactory.PlayerStartingPosition.Y, "Restart should create a fresh session with initial player position.");
             Ensure(snapshot.SessionId == "restart-after", "Restart should expose the new session identity.");
             completedChecks.Add(nameof(VerifyRestartCreatesFreshSession));
         }

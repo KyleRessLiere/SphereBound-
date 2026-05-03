@@ -35,3 +35,4 @@ Rules:
 - [11] [done] Verifier Log Output Files (`specDev/features/11-verifier-log-output-files/`)
 - [12] [done] Scenario Ability And Behavior Validation (`specDev/features/12-scenario-ability-behavior-validation/`)
 - [13] [done] Basic 3D Tactical Board View (`specDev/features/13-basic-3d-tactical-board-view/`)
+- [14] [done] Core 4x4 Board Layout (`specDev/features/14-core-4x4-board-layout/`)

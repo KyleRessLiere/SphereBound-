@@ -84,6 +84,7 @@ namespace Spherebound.CoreCombatLoop.Verification
                 nameof(AbilityRequested),
                 nameof(ActionStarted),
                 nameof(ActionFailed),
+                nameof(ActionSpent),
                 nameof(ActionEnded),
             };
 
@@ -100,8 +101,8 @@ namespace Spherebound.CoreCombatLoop.Verification
                     },
                     new[]
                     {
-                        new ScenarioExpectation(CombatScenarioFactory.PlayerUnitId, expectedHealth: 5, expectedPosition: new GridPosition(1, 1), expectedLifeState: UnitLifeState.Alive),
-                        new ScenarioExpectation(CombatScenarioFactory.EnemyUnitId, expectedHealth: 3, expectedPosition: new GridPosition(4, 4), expectedLifeState: UnitLifeState.Alive),
+                        new ScenarioExpectation(CombatScenarioFactory.PlayerUnitId, expectedHealth: 5, expectedPosition: CombatScenarioFactory.PlayerStartingPosition, expectedLifeState: UnitLifeState.Alive),
+                        new ScenarioExpectation(CombatScenarioFactory.EnemyUnitId, expectedHealth: 3, expectedPosition: CombatScenarioFactory.EnemyStartingPosition, expectedLifeState: UnitLifeState.Alive),
                     },
                     false,
                     expectedEvents),

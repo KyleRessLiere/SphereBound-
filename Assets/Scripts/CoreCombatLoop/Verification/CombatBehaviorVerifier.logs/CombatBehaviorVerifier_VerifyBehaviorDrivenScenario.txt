@@ -3,12 +3,10 @@ check: VerifyBehaviorDrivenScenario
 result: pass
 
 [initial-board]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][E][ ][ ][ ][ ]
-[ ][P][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ]
+[ ][E][ ][ ]
+[ ][P][ ][ ]
+[ ][ ][ ][ ]
 
 [events]
 TurnStarted side=Player
@@ -28,9 +26,7 @@ TurnEnded side=Enemy
 TurnStarted side=Player
 
 [final-board]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][E][ ][ ][ ][ ]
-[ ][P][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ]
+[ ][E][ ][ ]
+[ ][P][ ][ ]
+[ ][ ][ ][ ]

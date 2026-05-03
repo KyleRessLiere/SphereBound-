@@ -98,8 +98,8 @@ namespace Spherebound.CoreCombatLoop.Scenarios
                 },
                 new[]
                 {
-                    new ScenarioExpectation(CombatScenarioFactory.PlayerUnitId, expectedHealth: 5, expectedPosition: new GridPosition(1, 1), expectedLifeState: UnitLifeState.Alive),
-                    new ScenarioExpectation(CombatScenarioFactory.EnemyUnitId, expectedHealth: 3, expectedPosition: new GridPosition(4, 3), expectedLifeState: UnitLifeState.Alive),
+                    new ScenarioExpectation(CombatScenarioFactory.PlayerUnitId, expectedHealth: 5, expectedPosition: CombatScenarioFactory.PlayerStartingPosition, expectedLifeState: UnitLifeState.Alive),
+                    new ScenarioExpectation(CombatScenarioFactory.EnemyUnitId, expectedHealth: 3, expectedPosition: new GridPosition(2, 2), expectedLifeState: UnitLifeState.Alive),
                 },
                 true,
                 new[]
@@ -159,7 +159,7 @@ namespace Spherebound.CoreCombatLoop.Scenarios
             int remainingPlayerActions)
         {
             return new CombatState(
-                new BoardDimensions(6, 6),
+                CombatScenarioFactory.CreateDefaultBoardDimensions(),
                 activeTurn,
                 remainingPlayerActions,
                 new[]
@@ -182,7 +182,7 @@ namespace Spherebound.CoreCombatLoop.Scenarios
         private static CombatState CreateBehaviorDrivenState()
         {
             return new CombatState(
-                new BoardDimensions(6, 6),
+                CombatScenarioFactory.CreateDefaultBoardDimensions(),
                 CombatTurnSide.Player,
                 2,
                 new[]

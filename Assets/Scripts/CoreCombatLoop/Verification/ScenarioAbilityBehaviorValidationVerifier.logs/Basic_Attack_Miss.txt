@@ -3,24 +3,21 @@ check: Basic Attack Miss
 result: pass
 
 [initial-board]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][E][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][P][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
+[ ][ ][E][ ]
+[ ][ ][ ][ ]
+[ ][ ][ ][ ]
+[ ][P][ ][ ]
 
 [events]
 TurnStarted side=Player
 AbilityRequested actor=1 ability=basic-attack targetUnit=2 targetPosition=none
 ActionStarted unit=1 action=Attack
 ActionFailed unit=1 action=Attack reason=TargetNotAdjacent
+ActionSpent unit=1 remainingActions=1
 ActionEnded unit=1 action=Attack
 
 [final-board]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][E][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][P][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
+[ ][ ][E][ ]
+[ ][ ][ ][ ]
+[ ][ ][ ][ ]
+[ ][P][ ][ ]

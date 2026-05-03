@@ -199,7 +199,7 @@ namespace Spherebound.CoreCombatLoop.Core
             if (abilityFailureReason != CombatFailureReason.None)
             {
                 events.Add(new ActionFailed(request.ActorUnitId, ability.ActionType, abilityFailureReason));
-                events.Add(new ActionEnded(request.ActorUnitId, ability.ActionType));
+                AppendSpentFailedActionTail(state, actor, ability.ActionType, ability.ActionCost, events, abilityFailureReason);
                 return new CombatActionResult(false, events, abilityFailureReason);
             }
 
@@ -207,7 +207,7 @@ namespace Spherebound.CoreCombatLoop.Core
             if (ability.RequiresAffectedUnit && affectedUnits.Count == 0)
             {
                 events.Add(new ActionFailed(request.ActorUnitId, ability.ActionType, CombatFailureReason.NoAffectedTiles));
-                events.Add(new ActionEnded(request.ActorUnitId, ability.ActionType));
+                AppendSpentFailedActionTail(state, actor, ability.ActionType, ability.ActionCost, events, CombatFailureReason.NoAffectedTiles);
                 return new CombatActionResult(false, events, CombatFailureReason.NoAffectedTiles);
             }
 
@@ -467,6 +467,23 @@ namespace Spherebound.CoreCombatLoop.Core
             CombatActionType actionType,
             int actionCost,
             List<ICombatEvent> events)
+        {
+            if (actor.Side == CombatUnitSide.Player)
+            {
+                state.RemainingPlayerActions -= actionCost;
+                events.Add(new ActionSpent(actor.Id, state.RemainingPlayerActions));
+            }
+
+            events.Add(new ActionEnded(actor.Id, actionType));
+        }
+
+        private static void AppendSpentFailedActionTail(
+            CombatState state,
+            CombatUnitState actor,
+            CombatActionType actionType,
+            int actionCost,
+            List<ICombatEvent> events,
+            CombatFailureReason failureReason)
         {
             if (actor.Side == CombatUnitSide.Player)
             {

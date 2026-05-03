@@ -3,12 +3,10 @@ check: VerifyAbilityCostHandling
 result: fail
 
 [initial-board]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][E][ ][ ][ ][ ]
-[ ][P][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ]
+[ ][E][ ][ ]
+[ ][P][ ][ ]
+[ ][ ][ ][ ]
 
 [events]
 AbilityRequested actor=1 ability=heavy-slash targetUnit=2 targetPosition=none
@@ -17,12 +15,10 @@ ActionFailed unit=1 action=Attack reason=NoActionsRemaining
 ActionEnded unit=1 action=Attack
 
 [final-board]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][E][ ][ ][ ][ ]
-[ ][P][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ]
+[ ][E][ ][ ]
+[ ][P][ ][ ]
+[ ][ ][ ][ ]
 
 [notes]
 failureReason=NoActionsRemaining

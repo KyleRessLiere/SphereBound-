@@ -64,15 +64,18 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             return null;
         }
 
-        private static GridPosition ResolveForwardTargetPosition(CombatState state, CombatUnitState actor)
+        public static GridPosition ResolveForwardTargetPosition(CombatState state, CombatUnitState actor)
         {
-            var forward = new GridPosition(actor.Position.X, actor.Position.Y + 1);
+            var forwardStep = actor.Side == CombatUnitSide.Player ? 1 : -1;
+            var backwardStep = -forwardStep;
+
+            var forward = new GridPosition(actor.Position.X, actor.Position.Y + forwardStep);
             if (state.Board.Contains(forward))
             {
                 return forward;
             }
 
-            var backward = new GridPosition(actor.Position.X, actor.Position.Y - 1);
+            var backward = new GridPosition(actor.Position.X, actor.Position.Y + backwardStep);
             if (state.Board.Contains(backward))
             {
                 return backward;

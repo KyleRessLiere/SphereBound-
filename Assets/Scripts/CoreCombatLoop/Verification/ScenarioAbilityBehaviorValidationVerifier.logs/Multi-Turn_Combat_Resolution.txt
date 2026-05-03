@@ -3,12 +3,10 @@ check: Multi-Turn Combat Resolution
 result: pass
 
 [initial-board]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][E][ ][ ][ ][ ]
-[ ][P][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ]
+[ ][E][ ][ ]
+[ ][P][ ][ ]
+[ ][ ][ ][ ]
 
 [events]
 TurnStarted side=Player
@@ -36,9 +34,7 @@ ActionSpent unit=1 remainingActions=1
 ActionEnded unit=1 action=Attack
 
 [final-board]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
-[ ][P][ ][ ][ ][ ]
-[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ]
+[ ][ ][ ][ ]
+[ ][P][ ][ ]
+[ ][ ][ ][ ]

@@ -9,14 +9,22 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         {
             if (!TryGetPlayerUnit(state, out var player))
             {
-                return new CombatRuntimeControlSurfaceModel(canMove: false, canEndTurn: false, abilityButtons: new List<CombatRuntimeAbilityButtonModel>().AsReadOnly());
+                return new CombatRuntimeControlSurfaceModel(
+                    canMove: false,
+                    canEndTurn: false,
+                    remainingPlayerActions: 0,
+                    abilityButtons: new List<CombatRuntimeAbilityButtonModel>().AsReadOnly());
             }
 
             var canIssuePlayerCommands = player.IsAlive && state.ActiveTurn == CombatTurnSide.Player;
             var canMove = canIssuePlayerCommands && state.RemainingPlayerActions >= player.Definition.Movement.ActionCost;
             var abilityButtons = BuildAbilityButtons(state, player, canIssuePlayerCommands);
 
-            return new CombatRuntimeControlSurfaceModel(canMove, canIssuePlayerCommands, abilityButtons);
+            return new CombatRuntimeControlSurfaceModel(
+                canMove,
+                canIssuePlayerCommands,
+                state.RemainingPlayerActions,
+                abilityButtons);
         }
 
         private static IReadOnlyList<CombatRuntimeAbilityButtonModel> BuildAbilityButtons(CombatState state, CombatUnitState player, bool canIssuePlayerCommands)
