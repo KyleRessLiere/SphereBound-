@@ -34,3 +34,4 @@ Rules:
 - [10] [done] Pluggable Combat Behavior System (`specDev/features/10-pluggable-combat-behavior-system/`)
 - [11] [done] Verifier Log Output Files (`specDev/features/11-verifier-log-output-files/`)
 - [12] [done] Scenario Ability And Behavior Validation (`specDev/features/12-scenario-ability-behavior-validation/`)
+- [13] [done] Basic 3D Tactical Board View (`specDev/features/13-basic-3d-tactical-board-view/`)

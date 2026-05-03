@@ -6,10 +6,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
     public sealed class UnityCombatRuntimeUiController : MonoBehaviour
     {
         [SerializeField] private UnityCombatListenerBridge bridge = null!;
-        [SerializeField] private Button upButton = null!;
-        [SerializeField] private Button downButton = null!;
-        [SerializeField] private Button leftButton = null!;
-        [SerializeField] private Button rightButton = null!;
+        [SerializeField] private Button moveButton = null!;
         [SerializeField] private Button endTurnButton = null!;
         [SerializeField] private Button previousAbilityButton = null!;
         [SerializeField] private Button nextAbilityButton = null!;
@@ -17,6 +14,11 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
 
         private int selectedAbilityIndex;
         private CombatRuntimeAbilityButtonModel? currentAbilityButton;
+
+        public event System.Action? MoveActivationRequested;
+        public event System.Action<CombatRuntimeAbilityButtonModel>? AbilityActivationRequested;
+
+        public CombatRuntimeAbilityButtonModel? CurrentAbilityButton => currentAbilityButton;
 
         private void OnEnable()
         {
@@ -39,10 +41,11 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
 
         private void WireStaticButtons()
         {
-            BindMoveButton(upButton, CombatRuntimeDirection.Up);
-            BindMoveButton(downButton, CombatRuntimeDirection.Down);
-            BindMoveButton(leftButton, CombatRuntimeDirection.Left);
-            BindMoveButton(rightButton, CombatRuntimeDirection.Right);
+            if (moveButton != null)
+            {
+                moveButton.onClick.RemoveAllListeners();
+                moveButton.onClick.AddListener(HandleMovePressed);
+            }
 
             if (endTurnButton != null)
             {
@@ -63,17 +66,6 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             }
         }
 
-        private void BindMoveButton(Button button, CombatRuntimeDirection direction)
-        {
-            if (button == null)
-            {
-                return;
-            }
-
-            button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(() => bridge.ExecuteRuntimeMove(direction));
-        }
-
         private void RefreshView()
         {
             if (bridge == null)
@@ -82,37 +74,17 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             }
 
             var model = bridge.BuildRuntimeControlSurfaceModel();
-            ApplyMoveButtonState(model);
+            ApplyMoveState(model);
             ApplyEndTurnState(model);
             ApplyAbilitySelection(model);
         }
 
-        private void ApplyMoveButtonState(CombatRuntimeControlSurfaceModel model)
+        private void ApplyMoveState(CombatRuntimeControlSurfaceModel model)
         {
-            SetMoveButtonInteractable(model, CombatRuntimeDirection.Up, upButton);
-            SetMoveButtonInteractable(model, CombatRuntimeDirection.Down, downButton);
-            SetMoveButtonInteractable(model, CombatRuntimeDirection.Left, leftButton);
-            SetMoveButtonInteractable(model, CombatRuntimeDirection.Right, rightButton);
-        }
-
-        private void SetMoveButtonInteractable(CombatRuntimeControlSurfaceModel model, CombatRuntimeDirection direction, Button button)
-        {
-            if (button == null)
+            if (moveButton != null)
             {
-                return;
+                moveButton.interactable = model.CanMove;
             }
-
-            for (var index = 0; index < model.MoveButtons.Count; index += 1)
-            {
-                var moveButton = model.MoveButtons[index];
-                if (moveButton.Direction == direction)
-                {
-                    button.interactable = moveButton.IsInteractable;
-                    return;
-                }
-            }
-
-            button.interactable = false;
         }
 
         private void ApplyEndTurnState(CombatRuntimeControlSurfaceModel model)
@@ -151,7 +123,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
 
             selectedAbilityButton.gameObject.SetActive(true);
             currentAbilityButton = model.AbilityButtons[selectedAbilityIndex];
-            selectedAbilityButton.Bind(currentAbilityButton, () => bridge.ExecuteRuntimeAbility(currentAbilityButton));
+            selectedAbilityButton.Bind(currentAbilityButton, HandleSelectedAbilityPressed);
 
             var canCycle = model.AbilityButtons.Count > 1;
             if (previousAbilityButton != null)
@@ -175,6 +147,27 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
             var model = bridge.BuildRuntimeControlSurfaceModel();
             selectedAbilityIndex = CombatRuntimeAbilitySelection.Cycle(selectedAbilityIndex, delta, model.AbilityButtons.Count);
             ApplyAbilitySelection(model);
+        }
+
+        private void HandleSelectedAbilityPressed()
+        {
+            if (currentAbilityButton == null)
+            {
+                return;
+            }
+
+            if (AbilityActivationRequested != null)
+            {
+                AbilityActivationRequested.Invoke(currentAbilityButton);
+                return;
+            }
+
+            bridge.ExecuteRuntimeAbility(currentAbilityButton);
+        }
+
+        private void HandleMovePressed()
+        {
+            MoveActivationRequested?.Invoke();
         }
     }
 }

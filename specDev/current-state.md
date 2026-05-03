@@ -120,10 +120,11 @@ It should be updated after each completed feature so the team can see the game's
 
 - Unity now has a basic `uGUI` runtime combat UI controller layer.
 - The runtime UI can expose:
-  - `Up`, `Down`, `Left`, `Right`
+  - `Move`
   - `End Turn`
   - one large selected-ability button
   - left/right ability cycling controls
+- The `Move` button now arms movement selection on the tactical board instead of exposing four separate directional buttons.
 - The runtime ability surface is generated from the player's live definition-backed abilities rather than hardcoded UI names.
 - The selected ability button can show:
   - ability name
@@ -133,6 +134,23 @@ It should be updated after each completed feature so the team can see the game's
 - The runtime UI keeps a presentation-only selected ability index and cycles across the player's available abilities with wrap behavior.
 - Runtime UI actions route through the existing Unity bridge and pure core gameplay path rather than a separate rules implementation.
 - Unity also has an Editor scaffold utility that can create the basic runtime combat UI hierarchy and wire the scene references automatically.
+
+## Tactical Board View
+
+- Unity now has a basic primitive-driven 3D tactical board view for the current `6x6` combat board.
+- The board renders as grey square tiles with slight spacing and a simple floating presentation.
+- The first pass currently supports one player unit and one enemy unit visually.
+- The player renders as a sphere and the enemy renders as a cube, both centered on their current tiles and smaller than the tile footprint.
+- Unit visuals update from bridge snapshots and core events rather than Unity-owned gameplay state.
+- Removed units disappear from the board view when the core removes them.
+- Tile click input can route movement requests through the existing Unity bridge and core path.
+- Valid movement tiles highlight yellow.
+- Armed attack or ability preview tiles highlight red.
+- Attack preview currently uses a two-click flow:
+  - first click previews the targeted effect tiles
+  - second click confirms the request through the core path
+- Preview state can be canceled by clicking off the board or pressing `Esc`.
+- Unity also has an Editor scaffold utility that can create the tactical board view and camera setup for a scene.
 
 ## Board And Attack Debug Output
 
@@ -156,6 +174,6 @@ It should be updated after each completed feature so the team can see the game's
 
 ## Current Limits
 
-- There is no player-facing runtime UI yet.
+- There is no polished player-facing runtime presentation yet.
 - There is no animation, VFX, audio, or polished scene presentation layer yet.
 - The game is currently focused on core combat behavior and debugging infrastructure rather than production gameplay presentation.

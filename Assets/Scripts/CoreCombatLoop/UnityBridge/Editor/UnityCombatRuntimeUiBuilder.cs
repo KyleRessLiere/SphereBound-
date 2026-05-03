@@ -24,9 +24,9 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
 
             var canvas = CreateCanvas();
             var uiRoot = CreateUiRoot(canvas.transform);
-            var movePanel = CreateMovePanel(uiRoot.transform, out var upButton, out var downButton, out var leftButton, out var rightButton, out var endTurnButton);
+            RemoveLegacyMoveObjects();
             RemoveLegacyAbilityListObjects();
-            var abilitySelectorPanel = CreateAbilitySelectorPanel(uiRoot.transform, out var previousAbilityButton, out var nextAbilityButton, out var selectedAbilityButton);
+            var abilitySelectorPanel = CreateAbilitySelectorPanel(uiRoot.transform, out var moveButton, out var previousAbilityButton, out var nextAbilityButton, out var selectedAbilityButton, out var endTurnButton);
 
             var controller = uiRoot.GetComponent<UnityCombatRuntimeUiController>();
             if (controller == null)
@@ -34,7 +34,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
                 controller = Undo.AddComponent<UnityCombatRuntimeUiController>(uiRoot);
             }
 
-            AssignControllerReferences(controller, bridge, upButton, downButton, leftButton, rightButton, endTurnButton, previousAbilityButton, nextAbilityButton, selectedAbilityButton);
+            AssignControllerReferences(controller, bridge, moveButton, endTurnButton, previousAbilityButton, nextAbilityButton, selectedAbilityButton);
             EditorSceneManager.MarkSceneDirty(uiRoot.scene);
             Selection.activeObject = uiRoot;
         }
@@ -43,6 +43,48 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
         {
             var scene = EditorSceneManager.OpenScene("Assets/Scenes/SampleScene.unity");
             CreateRuntimeCombatUi();
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveOpenScenes();
+            AssetDatabase.SaveAssets();
+        }
+
+        [MenuItem("Tools/Spherebound/Create Tactical Board View")]
+        public static void CreateTacticalBoardView()
+        {
+            var bridge = Object.FindFirstObjectByType<UnityCombatListenerBridge>();
+            if (bridge == null)
+            {
+                var bridgeObject = new GameObject("UnityCombatListenerBridge");
+                Undo.RegisterCreatedObjectUndo(bridgeObject, "Create combat listener bridge");
+                bridge = bridgeObject.AddComponent<UnityCombatListenerBridge>();
+            }
+
+            var runtimeUi = Object.FindFirstObjectByType<UnityCombatRuntimeUiController>();
+            if (runtimeUi == null)
+            {
+                CreateRuntimeCombatUi();
+                runtimeUi = Object.FindFirstObjectByType<UnityCombatRuntimeUiController>();
+            }
+
+            EnsureEventSystemExists();
+            var boardCamera = EnsureBoardCamera();
+            var boardRoot = EnsureBoardViewRoot();
+            var tacticalBoardView = boardRoot.GetComponent<UnityCombatTacticalBoardView>();
+            if (tacticalBoardView == null)
+            {
+                tacticalBoardView = Undo.AddComponent<UnityCombatTacticalBoardView>(boardRoot);
+            }
+
+            tacticalBoardView.Configure(bridge, runtimeUi, boardCamera);
+            EditorUtility.SetDirty(tacticalBoardView);
+            EditorSceneManager.MarkSceneDirty(boardRoot.scene);
+            Selection.activeObject = boardRoot;
+        }
+
+        public static void CreateTacticalBoardViewInSampleScene()
+        {
+            var scene = EditorSceneManager.OpenScene("Assets/Scenes/SampleScene.unity");
+            CreateTacticalBoardView();
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveOpenScenes();
             AssetDatabase.SaveAssets();
@@ -78,6 +120,38 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
             return canvas;
         }
 
+        private static Camera EnsureBoardCamera()
+        {
+            var existingCamera = Object.FindFirstObjectByType<Camera>();
+            if (existingCamera != null)
+            {
+                existingCamera.transform.position = new Vector3(0f, 8f, -7f);
+                existingCamera.transform.rotation = Quaternion.Euler(45f, 0f, 0f);
+                return existingCamera;
+            }
+
+            var cameraObject = new GameObject("TacticalBoardCamera");
+            Undo.RegisterCreatedObjectUndo(cameraObject, "Create tactical board camera");
+            var camera = cameraObject.AddComponent<Camera>();
+            camera.transform.position = new Vector3(0f, 8f, -7f);
+            camera.transform.rotation = Quaternion.Euler(45f, 0f, 0f);
+            camera.clearFlags = CameraClearFlags.Skybox;
+            return camera;
+        }
+
+        private static GameObject EnsureBoardViewRoot()
+        {
+            var existingRoot = GameObject.Find("CombatTacticalBoardView");
+            if (existingRoot != null)
+            {
+                return existingRoot;
+            }
+
+            var root = new GameObject("CombatTacticalBoardView");
+            Undo.RegisterCreatedObjectUndo(root, "Create tactical board view");
+            return root;
+        }
+
         private static GameObject CreateUiRoot(Transform canvasTransform)
         {
             var existingRoot = GameObject.Find("CombatRuntimeUiRoot");
@@ -97,42 +171,21 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
             return root;
         }
 
-        private static GameObject CreateMovePanel(
-            Transform parent,
-            out Button upButton,
-            out Button downButton,
-            out Button leftButton,
-            out Button rightButton,
-            out Button endTurnButton)
-        {
-            var panel = CreatePanel("MovePanel", parent, new Vector2(180f, 220f), new Vector2(100f, 140f));
-            upButton = CreateButton("UpButton", panel.transform, "Up", new Vector2(0f, 60f));
-            downButton = CreateButton("DownButton", panel.transform, "Down", new Vector2(0f, -60f));
-            leftButton = CreateButton("LeftButton", panel.transform, "Left", new Vector2(-60f, 0f));
-            rightButton = CreateButton("RightButton", panel.transform, "Right", new Vector2(60f, 0f));
-            endTurnButton = CreateButton("EndTurnButton", panel.transform, "End Turn", new Vector2(0f, -120f), new Vector2(140f, 30f));
-            return panel;
-        }
-
         private static GameObject CreateAbilitySelectorPanel(
             Transform parent,
+            out Button moveButton,
             out Button previousAbilityButton,
             out Button nextAbilityButton,
-            out CombatRuntimeAbilityButtonView selectedAbilityButton)
+            out CombatRuntimeAbilityButtonView selectedAbilityButton,
+            out Button endTurnButton)
         {
-            var existingPanel = GameObject.Find("AbilitySelectorPanel");
-            if (existingPanel != null)
-            {
-                previousAbilityButton = FindRequiredButton(existingPanel.transform, "PreviousAbilityButton", "<");
-                nextAbilityButton = FindRequiredButton(existingPanel.transform, "NextAbilityButton", ">");
-                selectedAbilityButton = FindRequiredAbilityButton(existingPanel.transform, "SelectedAbilityButton");
-                return existingPanel;
-            }
-
-            var panel = CreatePanel("AbilitySelectorPanel", parent, new Vector2(420f, 180f), new Vector2(-220f, 0f));
-            previousAbilityButton = CreateButton("PreviousAbilityButton", panel.transform, "<", new Vector2(-150f, 0f), new Vector2(50f, 120f));
-            nextAbilityButton = CreateButton("NextAbilityButton", panel.transform, ">", new Vector2(150f, 0f), new Vector2(50f, 120f));
-            selectedAbilityButton = CreateSelectedAbilityButton(panel.transform);
+            var panel = CreatePanel("AbilitySelectorPanel", parent, new Vector2(420f, 260f), new Vector2(-220f, 0f));
+            ConfigureRect((RectTransform)panel.transform, new Vector2(-220f, 0f), new Vector2(420f, 260f));
+            moveButton = FindRequiredButton(panel.transform, "MoveButton", "Move", new Vector2(0f, 90f), new Vector2(140f, 36f));
+            previousAbilityButton = FindRequiredButton(panel.transform, "PreviousAbilityButton", "<", new Vector2(-150f, 0f), new Vector2(50f, 120f));
+            nextAbilityButton = FindRequiredButton(panel.transform, "NextAbilityButton", ">", new Vector2(150f, 0f), new Vector2(50f, 120f));
+            selectedAbilityButton = FindRequiredAbilityButton(panel.transform, "SelectedAbilityButton", Vector2.zero, new Vector2(260f, 120f));
+            endTurnButton = FindRequiredButton(panel.transform, "EndTurnButton", "End Turn", new Vector2(0f, -90f), new Vector2(140f, 36f));
             return panel;
         }
 
@@ -193,6 +246,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
             var existing = GameObject.Find(name);
             if (existing != null && existing.TryGetComponent<Button>(out var existingButton))
             {
+                ConfigureRect((RectTransform)existing.transform, anchoredPosition, size ?? new Vector2(90f, 40f));
                 ConfigureButtonVisuals(existing.GetComponent<Image>());
                 var existingLabel = EnsureTmpLabel(existing.transform, "Text");
                 ConfigureStandardButtonLabel(existingLabel);
@@ -258,10 +312,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
         private static void AssignControllerReferences(
             UnityCombatRuntimeUiController controller,
             UnityCombatListenerBridge bridge,
-            Button upButton,
-            Button downButton,
-            Button leftButton,
-            Button rightButton,
+            Button moveButton,
             Button endTurnButton,
             Button previousAbilityButton,
             Button nextAbilityButton,
@@ -269,10 +320,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
         {
             var serializedObject = new SerializedObject(controller);
             serializedObject.FindProperty("bridge").objectReferenceValue = bridge;
-            serializedObject.FindProperty("upButton").objectReferenceValue = upButton;
-            serializedObject.FindProperty("downButton").objectReferenceValue = downButton;
-            serializedObject.FindProperty("leftButton").objectReferenceValue = leftButton;
-            serializedObject.FindProperty("rightButton").objectReferenceValue = rightButton;
+            serializedObject.FindProperty("moveButton").objectReferenceValue = moveButton;
             serializedObject.FindProperty("endTurnButton").objectReferenceValue = endTurnButton;
             serializedObject.FindProperty("previousAbilityButton").objectReferenceValue = previousAbilityButton;
             serializedObject.FindProperty("nextAbilityButton").objectReferenceValue = nextAbilityButton;
@@ -324,11 +372,12 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
             return tmpText;
         }
 
-        private static Button FindRequiredButton(Transform parent, string name, string label)
+        private static Button FindRequiredButton(Transform parent, string name, string label, Vector2 anchoredPosition, Vector2 size)
         {
             var existing = parent.Find(name);
             if (existing != null && existing.TryGetComponent<Button>(out var existingButton))
             {
+                ConfigureRect((RectTransform)existing, anchoredPosition, size);
                 ConfigureButtonVisuals(existing.GetComponent<Image>());
                 var existingLabel = EnsureTmpLabel(existing, "Text");
                 ConfigureStandardButtonLabel(existingLabel);
@@ -336,14 +385,15 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
                 return existingButton;
             }
 
-            return CreateButton(name, parent, label, Vector2.zero);
+            return CreateButton(name, parent, label, anchoredPosition, size);
         }
 
-        private static CombatRuntimeAbilityButtonView FindRequiredAbilityButton(Transform parent, string name)
+        private static CombatRuntimeAbilityButtonView FindRequiredAbilityButton(Transform parent, string name, Vector2 anchoredPosition, Vector2 size)
         {
             var existing = parent.Find(name);
             if (existing != null && existing.TryGetComponent<CombatRuntimeAbilityButtonView>(out var existingView))
             {
+                ConfigureRect((RectTransform)existing, anchoredPosition, size);
                 ConfigureButtonVisuals(existing.GetComponent<Image>());
                 var existingLabel = EnsureTmpLabel(existing, "Label");
                 ConfigureAbilityButtonLabel(existingLabel);
@@ -351,13 +401,32 @@ namespace Spherebound.CoreCombatLoop.UnityBridge.Editor
                 return existingView;
             }
 
-            return CreateSelectedAbilityButton(parent);
+            var created = CreateSelectedAbilityButton(parent);
+            ConfigureRect((RectTransform)created.transform, anchoredPosition, size);
+            return created;
         }
 
         private static void RemoveLegacyAbilityListObjects()
         {
             DestroyIfPresent("AbilityPanel");
             DestroyIfPresent("AbilityButtonTemplate");
+        }
+
+        private static void RemoveLegacyMoveObjects()
+        {
+            DestroyIfPresent("MovePanel");
+            DestroyIfPresent("UpButton");
+            DestroyIfPresent("DownButton");
+            DestroyIfPresent("LeftButton");
+            DestroyIfPresent("RightButton");
+        }
+
+        private static void ConfigureRect(RectTransform rectTransform, Vector2 anchoredPosition, Vector2 size)
+        {
+            rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            rectTransform.anchoredPosition = anchoredPosition;
+            rectTransform.sizeDelta = size;
         }
 
         private static void DestroyIfPresent(string objectName)

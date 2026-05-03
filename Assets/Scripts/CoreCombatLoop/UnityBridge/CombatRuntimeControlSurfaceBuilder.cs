@@ -9,25 +9,14 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         {
             if (!TryGetPlayerUnit(state, out var player))
             {
-                return new CombatRuntimeControlSurfaceModel(CreateMoveButtons(isInteractable: false), canEndTurn: false, abilityButtons: new List<CombatRuntimeAbilityButtonModel>().AsReadOnly());
+                return new CombatRuntimeControlSurfaceModel(canMove: false, canEndTurn: false, abilityButtons: new List<CombatRuntimeAbilityButtonModel>().AsReadOnly());
             }
 
             var canIssuePlayerCommands = player.IsAlive && state.ActiveTurn == CombatTurnSide.Player;
-            var moveButtons = CreateMoveButtons(canIssuePlayerCommands && state.RemainingPlayerActions >= player.Definition.Movement.ActionCost);
+            var canMove = canIssuePlayerCommands && state.RemainingPlayerActions >= player.Definition.Movement.ActionCost;
             var abilityButtons = BuildAbilityButtons(state, player, canIssuePlayerCommands);
 
-            return new CombatRuntimeControlSurfaceModel(moveButtons, canIssuePlayerCommands, abilityButtons);
-        }
-
-        private static IReadOnlyList<CombatRuntimeMoveButtonModel> CreateMoveButtons(bool isInteractable)
-        {
-            return new List<CombatRuntimeMoveButtonModel>
-            {
-                new CombatRuntimeMoveButtonModel(CombatRuntimeDirection.Up, "Up", isInteractable),
-                new CombatRuntimeMoveButtonModel(CombatRuntimeDirection.Down, "Down", isInteractable),
-                new CombatRuntimeMoveButtonModel(CombatRuntimeDirection.Left, "Left", isInteractable),
-                new CombatRuntimeMoveButtonModel(CombatRuntimeDirection.Right, "Right", isInteractable),
-            }.AsReadOnly();
+            return new CombatRuntimeControlSurfaceModel(canMove, canIssuePlayerCommands, abilityButtons);
         }
 
         private static IReadOnlyList<CombatRuntimeAbilityButtonModel> BuildAbilityButtons(CombatState state, CombatUnitState player, bool canIssuePlayerCommands)

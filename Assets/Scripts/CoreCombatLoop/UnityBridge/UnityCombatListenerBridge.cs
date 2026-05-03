@@ -32,6 +32,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
         private string? fileOutputSessionId;
 
         public event Action? RuntimeStateChanged;
+        public event Action<ICombatEvent>? CoreEventObserved;
 
         public BridgedCombatSessionSnapshot? CurrentSnapshot { get; private set; }
 
@@ -156,16 +157,7 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
                 return CombatRuntimeControlSurfaceBuilder.Build(observableSession.State);
             }
 
-            return new CombatRuntimeControlSurfaceModel(
-                new[]
-                {
-                    new CombatRuntimeMoveButtonModel(CombatRuntimeDirection.Up, "Up", false),
-                    new CombatRuntimeMoveButtonModel(CombatRuntimeDirection.Down, "Down", false),
-                    new CombatRuntimeMoveButtonModel(CombatRuntimeDirection.Left, "Left", false),
-                    new CombatRuntimeMoveButtonModel(CombatRuntimeDirection.Right, "Right", false),
-                },
-                canEndTurn: false,
-                abilityButtons: Array.Empty<CombatRuntimeAbilityButtonModel>());
+            return new CombatRuntimeControlSurfaceModel(canMove: false, canEndTurn: false, abilityButtons: Array.Empty<CombatRuntimeAbilityButtonModel>());
         }
 
         public CombatDebugCommandResult ExecuteRuntimeMove(CombatRuntimeDirection direction)
@@ -199,15 +191,117 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
                 abilityButton.TargetPosition));
         }
 
+        public CombatDebugCommandResult ExecuteRuntimeAbilityPreview(CombatRuntimeAbilityPreview preview)
+        {
+            if (preview == null)
+            {
+                throw new ArgumentNullException(nameof(preview));
+            }
+
+            return ExecuteDebugCommand(CombatDebugCommandRequest.Ability(
+                preview.Request.ActorUnitId,
+                preview.Request.AbilityId,
+                preview.Request.TargetUnitId,
+                preview.Request.TargetPosition));
+        }
+
         public CombatDebugCommandResult ExecuteRuntimeEndTurn()
         {
             return ExecuteDebugCommand(CombatDebugCommandRequest.EndTurn(CombatScenarioFactory.PlayerUnitId));
+        }
+
+        public CombatDebugCommandResult ExecuteRuntimeMoveTo(GridPosition destination)
+        {
+            return ExecuteDebugCommand(CombatDebugCommandRequest.Move(CombatScenarioFactory.PlayerUnitId, destination));
+        }
+
+        public IReadOnlyList<GridPosition> BuildRuntimeValidMoveTiles()
+        {
+            if (debugSession is not ObservableCombatSession observableSession)
+            {
+                return Array.Empty<GridPosition>();
+            }
+
+            if (!observableSession.State.TryGetUnit(CombatScenarioFactory.PlayerUnitId, out var player)
+                || !player.IsAlive)
+            {
+                return Array.Empty<GridPosition>();
+            }
+
+            var moveTiles = new List<GridPosition>(4);
+            var candidates = new[]
+            {
+                new GridPosition(player.Position.X, player.Position.Y + 1),
+                new GridPosition(player.Position.X, player.Position.Y - 1),
+                new GridPosition(player.Position.X - 1, player.Position.Y),
+                new GridPosition(player.Position.X + 1, player.Position.Y),
+            };
+
+            for (var index = 0; index < candidates.Length; index += 1)
+            {
+                var candidate = candidates[index];
+                if (!observableSession.State.Board.Contains(candidate))
+                {
+                    continue;
+                }
+
+                if (observableSession.State.TryGetUnitAtPosition(candidate, out _))
+                {
+                    continue;
+                }
+
+                moveTiles.Add(candidate);
+            }
+
+            return moveTiles;
+        }
+
+        public CombatRuntimeAbilityPreview? BuildRuntimeAbilityPreview(CombatRuntimeAbilityButtonModel abilityButton, GridPosition targetTile)
+        {
+            if (abilityButton == null)
+            {
+                throw new ArgumentNullException(nameof(abilityButton));
+            }
+
+            if (debugSession is not ObservableCombatSession observableSession)
+            {
+                return null;
+            }
+
+            if (!observableSession.State.TryGetUnit(abilityButton.ActingUnitId, out var actor)
+                || !actor.IsAlive
+                || !actor.Definition.TryGetAbility(abilityButton.AbilityId, out var ability))
+            {
+                return null;
+            }
+
+            var request = ResolveRuntimeAbilityRequest(observableSession.State, actor, ability, targetTile);
+            var resolvedTiles = CombatAbilityResolver.ResolveAffectedTiles(
+                observableSession.State,
+                actor,
+                ability,
+                request,
+                out var failureReason);
+
+            if (failureReason != CombatFailureReason.None)
+            {
+                return null;
+            }
+
+            var positions = new List<GridPosition>(resolvedTiles.Count);
+            for (var index = 0; index < resolvedTiles.Count; index += 1)
+            {
+                positions.Add(resolvedTiles[index].Position);
+            }
+
+            return new CombatRuntimeAbilityPreview(abilityButton, request, targetTile, positions);
         }
 
         private void HandleCoreEvent(ICombatEvent combatEvent)
         {
             var snapshotBefore = CurrentSnapshot;
             PublishLog("CoreEvent", ScenarioLogFormatter.Format(combatEvent));
+            CoreEventObserved?.Invoke(combatEvent);
             RefreshSnapshot();
             EmitDerivedDebugOutput(combatEvent, snapshotBefore);
         }
@@ -425,6 +519,37 @@ namespace Spherebound.CoreCombatLoop.UnityBridge
 
             playerPosition = default;
             return false;
+        }
+
+        private static AbilityUseRequest ResolveRuntimeAbilityRequest(
+            CombatState state,
+            CombatUnitState actor,
+            AbilityDefinition ability,
+            GridPosition selectedTile)
+        {
+            switch (ability.TargetingMode)
+            {
+                case AbilityTargetingMode.Self:
+                    return new AbilityUseRequest(actor.Id, ability.Id);
+
+                case AbilityTargetingMode.AdjacentUnit:
+                    if (state.TryGetUnitAtPosition(selectedTile, out var targetUnit))
+                    {
+                        return new AbilityUseRequest(actor.Id, ability.Id, targetUnit.Id, selectedTile);
+                    }
+
+                    return new AbilityUseRequest(actor.Id, ability.Id, targetPosition: selectedTile);
+
+                case AbilityTargetingMode.SpecificTile:
+                case AbilityTargetingMode.DirectionalShape:
+                case AbilityTargetingMode.Line:
+                case AbilityTargetingMode.Area:
+                case AbilityTargetingMode.AllUnitsInAffectedShape:
+                    return new AbilityUseRequest(actor.Id, ability.Id, targetPosition: selectedTile);
+
+                default:
+                    return CombatRuntimeAbilityRequestResolver.CreateRuntimeRequest(state, actor, ability);
+            }
         }
     }
 }
